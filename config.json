@@ -1,3 +1,15 @@
 {
-  "minPayout": 70
+  "minPayout": 70,
+  "telegram": {
+    "botToken": "YOUR_BOT_TOKEN_HERE",
+    "channelId": "@YOUR_CHANNEL_ID_HERE",
+    "enabled": false
+  },
+  "database": {
+    "uri": "mongodb://localhost:27017/currencies"
+  },
+  "server": {
+    "port": 5000,
+    "autoOpenBrowser": true
+  }
 } 

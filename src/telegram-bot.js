@@ -34,8 +34,8 @@ const logger = {
 };
 
 // تنظیمات تلگرام
-const TELEGRAM_BOT_TOKEN = '7554355277:AAGFB8QuBEp9BqeZqD3xyVjZVlpzbRQ3xEg';
-const CHANNEL_ID = '-1002498428726';
+const TELEGRAM_BOT_TOKEN = config.telegram?.botToken || 'YOUR_BOT_TOKEN_HERE';
+const CHANNEL_ID = config.telegram?.channelId || '@YOUR_CHANNEL_ID_HERE';
 const API_URL = 'http://localhost:5000/api/search';
 
 // راه‌اندازی MessageParser

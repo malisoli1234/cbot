@@ -3,9 +3,13 @@ const path = require('path');
 const expressLayouts = require('express-ejs-layouts');
 const connectDB = require('./config/database');
 const SearchController = require('./controllers/SearchController');
+const fs = require('fs');
+
+// Load configuration
+const config = JSON.parse(fs.readFileSync(path.join(__dirname, '../config.json'), 'utf8'));
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || config.server?.port || 5000;
 
 // View engine setup
 app.set('view engine', 'ejs');
@@ -63,6 +67,60 @@ app.get('/api/search/:id', async (req, res) => {
   await searchController.getSearchById(req, res);
 });
 
+// Configuration API
+app.get('/api/config', (req, res) => {
+  try {
+    res.json({
+      status: 'success',
+      data: config
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: 'خطا در خواندن تنظیمات'
+    });
+  }
+});
+
+app.post('/api/config', (req, res) => {
+  try {
+    const newConfig = req.body;
+    
+    // اعتبارسنجی تنظیمات
+    if (newConfig.telegram) {
+      if (newConfig.telegram.botToken && newConfig.telegram.botToken !== 'YOUR_BOT_TOKEN_HERE') {
+        config.telegram.botToken = newConfig.telegram.botToken;
+      }
+      if (newConfig.telegram.channelId && newConfig.telegram.channelId !== '@YOUR_CHANNEL_ID_HERE') {
+        config.telegram.channelId = newConfig.telegram.channelId;
+      }
+      if (typeof newConfig.telegram.enabled === 'boolean') {
+        config.telegram.enabled = newConfig.telegram.enabled;
+      }
+    }
+    
+    if (newConfig.server) {
+      if (typeof newConfig.server.autoOpenBrowser === 'boolean') {
+        config.server.autoOpenBrowser = newConfig.server.autoOpenBrowser;
+      }
+    }
+    
+    // ذخیره در فایل
+    fs.writeFileSync(path.join(__dirname, '../config.json'), JSON.stringify(config, null, 2));
+    
+    res.json({
+      status: 'success',
+      message: 'تنظیمات با موفقیت ذخیره شد',
+      data: config
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: 'خطا در ذخیره تنظیمات'
+    });
+  }
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
@@ -118,22 +176,50 @@ async function startServer() {
       console.log(`🎛️ Admin Panel: http://localhost:${PORT}/admin`);
       console.log(`🚀 React App: http://localhost:${PORT}`);
       
-      // باز کردن React app بعد از 3 ثانیه
-      setTimeout(() => {
-        const { exec } = require('child_process');
-        const url = `http://localhost:${PORT}`;
-        
-        // تشخیص سیستم عامل و باز کردن مرورگر
-        if (process.platform === 'win32') {
-          exec(`start ${url}`);
-        } else if (process.platform === 'darwin') {
-          exec(`open ${url}`);
-        } else {
-          exec(`xdg-open ${url}`);
-        }
-        
-        console.log(`🌐 React app opened in browser: ${url}`);
-      }, 3000);
+      // باز کردن React app بعد از 3 ثانیه (فقط اگر فعال باشه)
+      if (config.server?.autoOpenBrowser !== false) {
+        setTimeout(() => {
+          const { exec } = require('child_process');
+          const url = `http://localhost:${PORT}`;
+          
+          try {
+            // تشخیص سیستم عامل و باز کردن مرورگر
+            if (process.platform === 'win32') {
+              exec(`start ${url}`, (error) => {
+                if (error) {
+                  console.log(`⚠️ Could not open browser automatically: ${error.message}`);
+                  console.log(`🌐 Please open manually: ${url}`);
+                } else {
+                  console.log(`🌐 React app opened in browser: ${url}`);
+                }
+              });
+            } else if (process.platform === 'darwin') {
+              exec(`open ${url}`, (error) => {
+                if (error) {
+                  console.log(`⚠️ Could not open browser automatically: ${error.message}`);
+                  console.log(`🌐 Please open manually: ${url}`);
+                } else {
+                  console.log(`🌐 React app opened in browser: ${url}`);
+                }
+              });
+            } else {
+              exec(`xdg-open ${url}`, (error) => {
+                if (error) {
+                  console.log(`⚠️ Could not open browser automatically: ${error.message}`);
+                  console.log(`🌐 Please open manually: ${url}`);
+                } else {
+                  console.log(`🌐 React app opened in browser: ${url}`);
+                }
+              });
+            }
+          } catch (error) {
+            console.log(`⚠️ Could not open browser automatically: ${error.message}`);
+            console.log(`🌐 Please open manually: ${url}`);
+          }
+        }, 3000);
+      } else {
+        console.log(`🌐 Auto-open browser is disabled. Please open manually: http://localhost:${PORT}`);
+      }
     });
     
   } catch (error) {
