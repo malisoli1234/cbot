@@ -1,0 +1,261 @@
+<!-- Sites Management Page -->
+<div class="page-header">
+    <h1>🌐 مدیریت سایت‌ها</h1>
+    <p>مدیریت سایت‌های اسکرپینگ و تنظیمات آنها</p>
+</div>
+
+<!-- Sites List -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">📊 سایت‌های فعال</h2>
+        <button class="btn btn-primary" onclick="addNewSite()">
+            <i class="fas fa-plus"></i>
+            افزودن سایت جدید
+        </button>
+    </div>
+    
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>نام سایت</th>
+                    <th>آدرس</th>
+                    <th>وضعیت</th>
+                    <th>الگوهای پشتیبانی شده</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% sites.forEach(site => { %>
+                    <tr>
+                        <td>
+                            <strong><%= site.name %></strong>
+                            <br><small class="text-light">کلید: <%= site.key %></small>
+                        </td>
+                        <td>
+                            <a href="<%= site.url %>" target="_blank" class="text-primary">
+                                <%= site.url %>
+                            </a>
+                        </td>
+                        <td>
+                            <span class="badge badge-<%= site.status === 'active' ? 'success' : 'danger' %>">
+                                <%= site.status === 'active' ? 'فعال' : 'غیرفعال' %>
+                            </span>
+                        </td>
+                        <td>
+                            <% site.patterns.forEach(pattern => { %>
+                                <span class="badge badge-info"><%= pattern %></span>
+                            <% }); %>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="editSite('<%= site.key %>')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-<%= site.status === 'active' ? 'warning' : 'success' %>" 
+                                    onclick="toggleSiteStatus('<%= site.key %>', '<%= site.status %>')">
+                                <i class="fas fa-<%= site.status === 'active' ? 'pause' : 'play' %>"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteSite('<%= site.key %>')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Site Configuration -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">⚙️ تنظیمات سایت‌ها</h2>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <h3>P.Finance</h3>
+            <p><strong>آدرس:</strong> https://p.finance/en/cabinet/try-demo/</p>
+            <p><strong>الگوهای پشتیبانی شده:</strong> PO, QU, OL, ORG, SIMPLE</p>
+            <p><strong>وضعیت:</strong> <span class="badge badge-success">فعال</span></p>
+            
+            <h4>تنظیمات اسکرپینگ:</h4>
+            <ul>
+                <li>انتظار برای لود کامل صفحه: 3 ثانیه</li>
+                <li>انتظار برای جستجو: 2 ثانیه</li>
+                <li>حداقل payout: 70%</li>
+            </ul>
+        </div>
+        
+        <div class="col-md-6">
+            <h3>Example Site</h3>
+            <p><strong>آدرس:</strong> https://example.com</p>
+            <p><strong>الگوهای پشتیبانی شده:</strong> ORG</p>
+            <p><strong>وضعیت:</strong> <span class="badge badge-danger">غیرفعال</span></p>
+            
+            <h4>تنظیمات اسکرپینگ:</h4>
+            <ul>
+                <li>انتظار برای لود کامل صفحه: 2 ثانیه</li>
+                <li>انتظار برای جستجو: 1 ثانیه</li>
+                <li>حداقل payout: 50%</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Site Modal -->
+<div id="siteModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">افزودن سایت جدید</h3>
+            <span class="close" onclick="closeModal()">&times;</span>
+        </div>
+        
+        <form id="siteForm">
+            <div class="form-group">
+                <label for="siteName" class="form-label">نام سایت</label>
+                <input type="text" id="siteName" name="name" class="form-control" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="siteKey" class="form-label">کلید سایت</label>
+                <input type="text" id="siteKey" name="key" class="form-control" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="siteUrl" class="form-label">آدرس سایت</label>
+                <input type="url" id="siteUrl" name="url" class="form-control" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="sitePatterns" class="form-label">الگوهای پشتیبانی شده</label>
+                <select id="sitePatterns" name="patterns" class="form-control" multiple>
+                    <option value="PO">PO</option>
+                    <option value="QU">QU</option>
+                    <option value="OL">OL</option>
+                    <option value="ORG">ORG</option>
+                    <option value="SIMPLE">SIMPLE</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="siteStatus" class="form-label">وضعیت</label>
+                <select id="siteStatus" name="status" class="form-control">
+                    <option value="active">فعال</option>
+                    <option value="inactive">غیرفعال</option>
+                </select>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">ذخیره</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">لغو</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 2rem;
+    border-radius: 0.75rem;
+    width: 80%;
+    max-width: 600px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.close {
+    font-size: 2rem;
+    cursor: pointer;
+    color: var(--text-light);
+}
+
+.close:hover {
+    color: var(--text-color);
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+}
+
+.row {
+    display: flex;
+    gap: 2rem;
+}
+
+.col-md-6 {
+    flex: 1;
+}
+</style>
+
+<script>
+function addNewSite() {
+    document.getElementById('modalTitle').textContent = 'افزودن سایت جدید';
+    document.getElementById('siteForm').reset();
+    document.getElementById('siteModal').style.display = 'block';
+}
+
+function editSite(siteKey) {
+    document.getElementById('modalTitle').textContent = 'ویرایش سایت';
+    // Load site data and populate form
+    document.getElementById('siteModal').style.display = 'block';
+}
+
+function closeModal() {
+    document.getElementById('siteModal').style.display = 'none';
+}
+
+function toggleSiteStatus(siteKey, currentStatus) {
+    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    const action = newStatus === 'active' ? 'فعال' : 'غیرفعال';
+    
+    if (confirm(`آیا مطمئن هستید که می‌خواهید این سایت را ${action} کنید؟`)) {
+        // API call to toggle status
+        console.log(`Toggling ${siteKey} to ${newStatus}`);
+    }
+}
+
+function deleteSite(siteKey) {
+    if (confirm('آیا مطمئن هستید که می‌خواهید این سایت را حذف کنید؟')) {
+        // API call to delete site
+        console.log(`Deleting site: ${siteKey}`);
+    }
+}
+
+document.getElementById('siteForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    // Handle form submission
+    console.log('Saving site configuration...');
+    closeModal();
+});
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('siteModal');
+    if (event.target === modal) {
+        closeModal();
+    }
+}
+</script> 
