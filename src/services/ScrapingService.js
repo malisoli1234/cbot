@@ -22,24 +22,27 @@ class ScrapingService {
     if (!this.initialized) {
       this.initialized = await this.browserManager.initialize();
       
-      // راه‌اندازی سایت‌های فعال
-      for (const site of Object.values(this.sites)) {
-        await this.setupSite(site);
+      if (this.initialized) {
+        // ایجاد صفحه برای استفاده مشترک
+        await this.browserManager.createPage();
+        
+        // راه‌اندازی سایت‌های فعال
+        for (const site of Object.values(this.sites)) {
+          await this.setupSite(site);
+        }
       }
     }
     return this.initialized;
   }
 
   async setupSite(site) {
-    const page = await this.browserManager.getPage(site.name);
+    const page = this.browserManager.getPage();
     if (!page) {
       throw new Error(`Failed to get page for ${site.name}`);
     }
 
     return await site.setup(page);
   }
-
-
 
   async searchCurrency(currencyName, targetSites = null) {
     const results = [];
@@ -119,7 +122,7 @@ class ScrapingService {
   }
 
   async searchInSite(site, currencyName) {
-    const page = await this.browserManager.getPage(site.name);
+    const page = this.browserManager.getPage();
     
     if (!page) {
       throw new Error(`Page not available for ${site.name}`);
