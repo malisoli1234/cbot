@@ -48,6 +48,7 @@ function Records() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [botActionFilter, setBotActionFilter] = useState('all');
   const [siteFilter, setSiteFilter] = useState('all');
   const [page, setPage] = useState(1);
   const [selectedRecord, setSelectedRecord] = useState(null);
@@ -87,9 +88,10 @@ function Records() {
     const matchesSearch = record.currencyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          record.searchTerm?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || record.status === statusFilter;
+    const matchesBotAction = botActionFilter === 'all' || record.botAction === botActionFilter;
     const matchesSite = siteFilter === 'all' || record.searchedSites?.includes(siteFilter);
     
-    return matchesSearch && matchesStatus && matchesSite;
+    return matchesSearch && matchesStatus && matchesBotAction && matchesSite;
   });
 
   // محاسبه رکوردهای قابل نمایش
@@ -163,6 +165,17 @@ function Records() {
     return 'N/A';
   };
 
+  const formatSearchedSites = (record) => {
+    if (record.searchedSites && Array.isArray(record.searchedSites)) {
+      return record.searchedSites.join(', ');
+    }
+    if (record.results && Array.isArray(record.results)) {
+      const sites = [...new Set(record.results.map(r => r.site))];
+      return sites.join(', ');
+    }
+    return 'نامشخص';
+  };
+
   const handleViewDetails = (record) => {
     setSelectedRecord(record);
     setDialogOpen(true);
@@ -227,9 +240,26 @@ function Records() {
                 label="وضعیت"
               >
                 <MenuItem value="all">همه</MenuItem>
-                <MenuItem value="success">موفق</MenuItem>
+                <MenuItem value="processed">پردازش شده</MenuItem>
+                <MenuItem value="deleted">حذف شده</MenuItem>
+                <MenuItem value="edited">ویرایش شده</MenuItem>
+                <MenuItem value="pending">در انتظار</MenuItem>
                 <MenuItem value="error">خطا</MenuItem>
-                <MenuItem value="pending">در حال پردازش</MenuItem>
+              </Select>
+            </FormControl>
+
+            <FormControl sx={{ minWidth: 150 }}>
+              <InputLabel>عملیات ربات</InputLabel>
+              <Select
+                value={botActionFilter}
+                onChange={(e) => setBotActionFilter(e.target.value)}
+                label="عملیات ربات"
+              >
+                <MenuItem value="all">همه</MenuItem>
+                <MenuItem value="none">هیچ عملی</MenuItem>
+                <MenuItem value="deleted">حذف شد</MenuItem>
+                <MenuItem value="edited">ویرایش شد</MenuItem>
+                <MenuItem value="kept">نگه داشته شد</MenuItem>
               </Select>
             </FormControl>
 
@@ -292,7 +322,7 @@ function Records() {
                         {record.searchTerm}
                       </Typography>
                     </TableCell>
-                    <TableCell>{record.searchedSites}</TableCell>
+                    <TableCell>{formatSearchedSites(record)}</TableCell>
                     <TableCell>
                       <Typography
                         variant="body2"
@@ -383,10 +413,26 @@ function Records() {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Typography variant="subtitle2" color="text.secondary">
-                    سایت
+                    عبارت جستجو
                   </Typography>
                   <Typography variant="body1" sx={{ mb: 2 }}>
-                    {selectedRecord.searchedSites}
+                    {selectedRecord.searchTerm}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    سایت‌های جستجو شده
+                  </Typography>
+                  <Typography variant="body1" sx={{ mb: 2 }}>
+                    {formatSearchedSites(selectedRecord)}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    بهترین Payout
+                  </Typography>
+                  <Typography variant="body1" sx={{ mb: 2, color: 'success.main', fontWeight: 600 }}>
+                    {formatPayoutInfo(selectedRecord)}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -399,36 +445,70 @@ function Records() {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Typography variant="subtitle2" color="text.secondary">
+                    عملیات ربات
+                  </Typography>
+                  <Box sx={{ mb: 2 }}>
+                    {getBotActionChip(selectedRecord.botAction)}
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" color="text.secondary">
                     زمان پردازش
                   </Typography>
                   <Typography variant="body1" sx={{ mb: 2 }}>
-                    {selectedRecord.processingTime}
+                    {selectedRecord.searchDuration ? `${selectedRecord.searchDuration}ms` : 'نامشخص'}
                   </Typography>
                 </Grid>
-                <Grid item xs={12}>
+                <Grid item xs={12} sm={6}>
                   <Typography variant="subtitle2" color="text.secondary">
-                    پیام اصلی
+                    تاریخ ایجاد
                   </Typography>
                   <Typography variant="body1" sx={{ mb: 2 }}>
-                    {selectedRecord.searchTerm}
+                    {formatTimestamp(selectedRecord.createdAt)}
                   </Typography>
                 </Grid>
+                {selectedRecord.payoutReason && (
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      دلیل Payout
+                    </Typography>
+                    <Typography variant="body1" sx={{ mb: 2 }}>
+                      {selectedRecord.payoutReason}
+                    </Typography>
+                  </Grid>
+                )}
+                {selectedRecord.messageInfo && (
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      اطلاعات پیام
+                    </Typography>
+                    <Typography variant="body2" sx={{ mb: 2 }}>
+                      الگو: {selectedRecord.messageInfo.pattern || 'نامشخص'}<br/>
+                      بازه زمانی: {selectedRecord.messageInfo.timeFrame || 'نامشخص'}<br/>
+                      جهت: {selectedRecord.messageInfo.direction || 'نامشخص'}<br/>
+                      شبکه: {selectedRecord.messageInfo.network || 'نامشخص'}
+                    </Typography>
+                  </Grid>
+                )}
                 <Grid item xs={12}>
                   <Typography variant="subtitle2" color="text.secondary">
-                    نتیجه
+                    نتایج جستجو
                   </Typography>
                   <Typography variant="body1" sx={{ mb: 2 }}>
                     {formatResults(selectedRecord.results)}
                   </Typography>
                 </Grid>
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    تاریخ و زمان
-                  </Typography>
-                  <Typography variant="body1">
-                    {formatTimestamp(selectedRecord.timestamp)}
-                  </Typography>
-                </Grid>
+                {selectedRecord.telegramMessageId && (
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      اطلاعات تلگرام
+                    </Typography>
+                    <Typography variant="body2" sx={{ mb: 2 }}>
+                      ID پیام: {selectedRecord.telegramMessageId}<br/>
+                      ID کانال: {selectedRecord.telegramChannelId}
+                    </Typography>
+                  </Grid>
+                )}
               </Grid>
             </Box>
           )}
