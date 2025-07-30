@@ -23,6 +23,8 @@ const currencySchema = new mongoose.Schema({
       type: String,
       required: true
     },
+    originalLabel: String,
+    originalPayout: String,
     timestamp: {
       type: Date,
       default: Date.now
@@ -45,8 +47,28 @@ const currencySchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'processed', 'deleted', 'edited'],
+    enum: ['pending', 'processed', 'deleted', 'edited', 'error'],
     default: 'pending'
+  },
+  // اطلاعات عملیات ربات
+  botAction: {
+    type: String,
+    enum: ['none', 'deleted', 'edited', 'kept'],
+    default: 'none'
+  },
+  // اطلاعات payout
+  bestPayout: {
+    type: String,
+    default: 'N/A'
+  },
+  payoutReason: {
+    type: String,
+    default: ''
+  },
+  // اطلاعات زمان‌بندی
+  searchDuration: {
+    type: Number, // میلی‌ثانیه
+    default: 0
   },
   createdAt: {
     type: Date,

@@ -110,7 +110,10 @@ const queue = async.queue(async (task, callback) => {
         logger.info(`🚫 پیام حذف شد: ${currencyName} به دلیل payout=N/A`);
         await deleteMessage(messageId);
         if (searchId !== 'temp-id') {
-          await updateCurrencyStatus(searchId, 'deleted');
+          await updateCurrencyStatus(searchId, 'deleted', 'deleted', {
+            payout: 'N/A',
+            reason: 'payout=N/A - پیام حذف شد'
+          });
         }
         callback();
         return;
@@ -121,7 +124,10 @@ const queue = async.queue(async (task, callback) => {
         logger.info(`🚫 پیام حذف شد: ${currencyName} به دلیل payout=${payout} کمتر از ${MIN_PAYOUT}`);
         await deleteMessage(messageId);
         if (searchId !== 'temp-id') {
-          await updateCurrencyStatus(searchId, 'deleted');
+          await updateCurrencyStatus(searchId, 'deleted', 'deleted', {
+            payout: payout,
+            reason: `payout=${payout} کمتر از ${MIN_PAYOUT} - پیام حذف شد`
+          });
         }
         callback();
         return;
@@ -137,7 +143,10 @@ const queue = async.queue(async (task, callback) => {
         });
         logger.info(`✏️ پیام ویرایش شد در کانال: ${reply}`);
         if (searchId !== 'temp-id') {
-          await updateCurrencyStatus(searchId, 'edited');
+          await updateCurrencyStatus(searchId, 'edited', 'edited', {
+            payout: payout,
+            reason: `پیام ویرایش شد با payout=${payout}%`
+          });
         }
       } catch (e) {
         logger.error(`❌ خطا در ویرایش پیام ${messageText}: ${e.message}`);
@@ -146,7 +155,10 @@ const queue = async.queue(async (task, callback) => {
       logger.info(`🚫 پیام حذف شد: ${currencyName} پیدا نشد`);
       await deleteMessage(messageId);
       if (searchId !== 'temp-id') {
-        await updateCurrencyStatus(searchId, 'deleted');
+        await updateCurrencyStatus(searchId, 'deleted', 'deleted', {
+          payout: 'N/A',
+          reason: 'ارز پیدا نشد - پیام حذف شد'
+        });
       }
       callback();
       return;
@@ -174,10 +186,21 @@ async function deleteMessage(messageId) {
 }
 
 // تابع به‌روزرسانی وضعیت در دیتابیس
-async function updateCurrencyStatus(searchId, status) {
+async function updateCurrencyStatus(searchId, status, botAction = null, payoutInfo = null) {
   try {
-    await Currency.findByIdAndUpdate(searchId, { status });
-    logger.info(`💾 وضعیت به‌روزرسانی شد: ${searchId} -> ${status}`);
+    const updateData = { status };
+    
+    if (botAction) {
+      updateData.botAction = botAction;
+    }
+    
+    if (payoutInfo) {
+      updateData.bestPayout = payoutInfo.payout;
+      updateData.payoutReason = payoutInfo.reason;
+    }
+    
+    await Currency.findByIdAndUpdate(searchId, updateData);
+    logger.info(`💾 وضعیت به‌روزرسانی شد: ${searchId} -> ${status} (${botAction || 'none'})`);
   } catch (e) {
     logger.error(`❌ خطا در به‌روزرسانی وضعیت: ${e.message}`);
   }

@@ -25,6 +25,8 @@ class SearchController {
       
       let searchResults;
       let searchTerm = currency;
+      let searchId = 'temp-id';
+      const startTime = Date.now();
 
       // اگر پیام کامل ارسال شده، از MessageParser استفاده کن
       if (message) {
@@ -42,6 +44,27 @@ class SearchController {
         searchResults = result.searchResults;
         searchTerm = result.messageInfo.searchTerm;
         
+        // محاسبه بهترین payout
+        let bestPayout = 'N/A';
+        let payoutReason = '';
+        const allResults = searchResults.flatMap(result => result.results || []);
+        
+        if (allResults.length > 0) {
+          const validPayouts = allResults
+            .filter(r => r.payout && r.payout !== 'N/A')
+            .map(r => ({ payout: parseFloat(r.payout), currency: r.currency }));
+          
+          if (validPayouts.length > 0) {
+            const best = validPayouts.reduce((max, current) => 
+              current.payout > max.payout ? current : max
+            );
+            bestPayout = best.payout.toString();
+            payoutReason = `بهترین payout: ${best.currency} با ${bestPayout}%`;
+          } else {
+            payoutReason = 'هیچ payout معتبری یافت نشد';
+          }
+        }
+        
         // ذخیره در دیتابیس با اطلاعات پیام (اگر دیتابیس در دسترس باشه)
         try {
           const currencyRecord = new Currency({
@@ -50,7 +73,9 @@ class SearchController {
             results: searchResults.map(result => ({
               site: result.site,
               currency: result.currencyName || result.messageInfo.currencyName,
-              payout: result.results?.[0]?.payout || 'N/A'
+              payout: result.results?.[0]?.payout || 'N/A',
+              originalLabel: result.results?.[0]?.originalLabel || '',
+              originalPayout: result.results?.[0]?.originalPayout || ''
             })),
             telegramMessageId: telegramMessageId || 0,
             telegramChannelId: telegramChannelId || '',
@@ -61,11 +86,15 @@ class SearchController {
               direction: result.messageInfo.direction,
               network: result.messageInfo.network,
               messageType: result.messageInfo.messageType
-            }
+            },
+            bestPayout: bestPayout,
+            payoutReason: payoutReason,
+            searchDuration: Date.now() - startTime
           });
 
           await currencyRecord.save();
-          console.log(`💾 نتایج در دیتابیس ذخیره شد: ${result.messageInfo.currencyName}`);
+          searchId = currencyRecord._id;
+          console.log(`💾 نتایج در دیتابیس ذخیره شد: ${result.messageInfo.currencyName} - بهترین payout: ${bestPayout}%`);
         } catch (dbError) {
           console.log(`⚠️ Could not save to database: ${dbError.message}`);
         }
@@ -74,15 +103,38 @@ class SearchController {
           status: 'success',
           message: `جستجو برای ${result.messageInfo.currencyName} انجام شد`,
           results: searchResults.flatMap(result => result.results || []),
-          searchId: 'temp-id',
+          searchId: searchId,
           messageInfo: result.messageInfo,
-          searchedSites: result.searchedSites
+          searchedSites: result.searchedSites,
+          bestPayout: bestPayout,
+          payoutReason: payoutReason
         });
 
       } else if (currency) {
         // جستجوی ساده بر اساس نام ارز
         console.log(`🔍 درخواست جستجو برای: ${currency}`);
         searchResults = await this.scrapingService.searchCurrency(currency);
+        
+        // محاسبه بهترین payout
+        let bestPayout = 'N/A';
+        let payoutReason = '';
+        const allResults = searchResults.flatMap(result => result.results || []);
+        
+        if (allResults.length > 0) {
+          const validPayouts = allResults
+            .filter(r => r.payout && r.payout !== 'N/A')
+            .map(r => ({ payout: parseFloat(r.payout), currency: r.currency }));
+          
+          if (validPayouts.length > 0) {
+            const best = validPayouts.reduce((max, current) => 
+              current.payout > max.payout ? current : max
+            );
+            bestPayout = best.payout.toString();
+            payoutReason = `بهترین payout: ${best.currency} با ${bestPayout}%`;
+          } else {
+            payoutReason = 'هیچ payout معتبری یافت نشد';
+          }
+        }
         
         // ذخیره در دیتابیس (اگر دیتابیس در دسترس باشه)
         try {
@@ -92,15 +144,21 @@ class SearchController {
             results: searchResults.map(result => ({
               site: result.site,
               currency: result.currencyName || currency,
-              payout: result.results?.[0]?.payout || 'N/A'
+              payout: result.results?.[0]?.payout || 'N/A',
+              originalLabel: result.results?.[0]?.originalLabel || '',
+              originalPayout: result.results?.[0]?.originalPayout || ''
             })),
             telegramMessageId: telegramMessageId || 0,
             telegramChannelId: telegramChannelId || '',
-            status: 'processed'
+            status: 'processed',
+            bestPayout: bestPayout,
+            payoutReason: payoutReason,
+            searchDuration: Date.now() - startTime
           });
 
           await currencyRecord.save();
-          console.log(`💾 نتایج در دیتابیس ذخیره شد: ${currency}`);
+          searchId = currencyRecord._id;
+          console.log(`💾 نتایج در دیتابیس ذخیره شد: ${currency} - بهترین payout: ${bestPayout}%`);
         } catch (dbError) {
           console.log(`⚠️ Could not save to database: ${dbError.message}`);
         }
@@ -109,7 +167,9 @@ class SearchController {
           status: 'success',
           message: `جستجو برای ${currency} انجام شد`,
           results: searchResults.flatMap(result => result.results || []),
-          searchId: currencyRecord._id
+          searchId: searchId,
+          bestPayout: bestPayout,
+          payoutReason: payoutReason
         });
 
       } else {

@@ -39,6 +39,8 @@ import {
   CheckCircle,
   Error,
   Pending,
+  Info,
+  Edit,
 } from '@mui/icons-material';
 
 function Records() {
@@ -103,9 +105,31 @@ function Records() {
       pending: { color: 'warning', icon: <Pending />, label: 'در انتظار' },
       deleted: { color: 'default', icon: <Delete />, label: 'حذف شده' },
       edited: { color: 'info', icon: <CheckCircle />, label: 'ویرایش شده' },
+      processed: { color: 'success', icon: <CheckCircle />, label: 'پردازش شده' },
     };
 
     const config = statusConfig[status] || statusConfig.error;
+
+    return (
+      <Chip
+        icon={config.icon}
+        label={config.label}
+        color={config.color}
+        size="small"
+        variant="outlined"
+      />
+    );
+  };
+
+  const getBotActionChip = (botAction) => {
+    const actionConfig = {
+      none: { color: 'default', icon: <Info />, label: 'هیچ عملی' },
+      deleted: { color: 'error', icon: <Delete />, label: 'حذف شد' },
+      edited: { color: 'info', icon: <Edit />, label: 'ویرایش شد' },
+      kept: { color: 'success', icon: <CheckCircle />, label: 'نگه داشته شد' },
+    };
+
+    const config = actionConfig[botAction] || actionConfig.none;
 
     return (
       <Chip
@@ -130,6 +154,13 @@ function Records() {
     return results.map(result => 
       `${result.currency}: ${result.payout}%`
     ).join(', ');
+  };
+
+  const formatPayoutInfo = (record) => {
+    if (record.bestPayout && record.bestPayout !== 'N/A') {
+      return `${record.bestPayout}%`;
+    }
+    return 'N/A';
   };
 
   const handleViewDetails = (record) => {
@@ -241,6 +272,8 @@ function Records() {
                 <TableRow>
                   <TableCell>ارز</TableCell>
                   <TableCell>سایت</TableCell>
+                  <TableCell>بهترین Payout</TableCell>
+                  <TableCell>عملیات ربات</TableCell>
                   <TableCell>وضعیت</TableCell>
                   <TableCell>نتیجه</TableCell>
                   <TableCell>زمان پردازش</TableCell>
@@ -260,6 +293,21 @@ function Records() {
                       </Typography>
                     </TableCell>
                     <TableCell>{record.searchedSites}</TableCell>
+                    <TableCell>
+                      <Typography
+                        variant="body2"
+                        color={record.bestPayout && record.bestPayout !== 'N/A' ? 'success.main' : 'text.secondary'}
+                        sx={{ fontWeight: 600 }}
+                      >
+                        {formatPayoutInfo(record)}
+                      </Typography>
+                      {record.payoutReason && (
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          {record.payoutReason}
+                        </Typography>
+                      )}
+                    </TableCell>
+                    <TableCell>{getBotActionChip(record.botAction)}</TableCell>
                     <TableCell>{getStatusChip(record.status)}</TableCell>
                     <TableCell>
                       <Typography
@@ -271,12 +319,12 @@ function Records() {
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" color="text.secondary">
-                        {record.processingTime}
+                        {record.searchDuration ? `${record.searchDuration}ms` : 'نامشخص'}
                       </Typography>
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" color="text.secondary">
-                        {formatTimestamp(record.timestamp)}
+                        {formatTimestamp(record.createdAt)}
                       </Typography>
                     </TableCell>
                     <TableCell>
