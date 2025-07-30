@@ -35,15 +35,41 @@ class OlympTradeSite extends BaseSite {
   async setup(page) {
     try {
       console.log(`🌐 راه‌اندازی سایت ${this.name}...`);
+      console.log(`📍 URL: ${this.url}`);
       
+      // اضافه کردن event listener برای response ها
+      page.on('response', (response) => {
+        console.log(`📡 Response: ${response.status()} ${response.url()}`);
+      });
+
+      page.on('requestfailed', (request) => {
+        console.log(`❌ Request failed: ${request.url()} - ${request.failure().errorText}`);
+      });
+
       // رفتن به صفحه
-      await page.goto(this.url, { 
+      console.log('🔄 در حال رفتن به صفحه...');
+      const response = await page.goto(this.url, { 
         waitUntil: 'networkidle2', 
         timeout: 30000 
       });
       
       console.log(`✅ صفحه ${this.name} لود شد`);
-      console.log(`عنوان صفحه: ${await page.title()}`);
+      console.log(`📄 عنوان صفحه: ${await page.title()}`);
+      console.log(`🔗 URL نهایی: ${page.url()}`);
+      console.log(`📊 Status Code: ${response?.status()}`);
+      
+      // چک کردن redirect
+      if (page.url() !== this.url) {
+        console.log(`⚠️ صفحه redirect شد از ${this.url} به ${page.url()}`);
+      }
+
+      // گرفتن screenshot برای debug
+      try {
+        await page.screenshot({ path: 'olymp-debug.png', fullPage: true });
+        console.log('📸 Screenshot ذخیره شد: olymp-debug.png');
+      } catch (e) {
+        console.log('⚠️ خطا در گرفتن screenshot:', e.message);
+      }
 
       // بستن popup ها و cookie ها
       try {
@@ -71,6 +97,12 @@ class OlympTradeSite extends BaseSite {
         console.log('✅ فیلد جستجو پیدا شد');
       } else {
         console.log('⚠️ فیلد جستجو پیدا نشد، ممکنه نیاز به لاگین باشه');
+        
+        // چک کردن محتوای صفحه
+        const pageContent = await page.content();
+        console.log(`📄 طول محتوای صفحه: ${pageContent.length} کاراکتر`);
+        console.log(`🔍 آیا کلمه "login" در صفحه هست: ${pageContent.toLowerCase().includes('login')}`);
+        console.log(`🔍 آیا کلمه "sign" در صفحه هست: ${pageContent.toLowerCase().includes('sign')}`);
       }
 
       this.isInitialized = true;
@@ -78,6 +110,8 @@ class OlympTradeSite extends BaseSite {
       return true;
     } catch (error) {
       console.error(`❌ خطا در راه‌اندازی سایت ${this.name}: ${error.message}`);
+      console.error(`🔍 نوع خطا: ${error.name}`);
+      console.error(`📍 URL مشکل‌دار: ${this.url}`);
       return false;
     }
   }

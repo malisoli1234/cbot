@@ -3,11 +3,36 @@
  */
 
 const puppeteer = require('puppeteer');
+const fs = require('fs');
+const path = require('path');
 
 class BrowserManager {
   constructor() {
     this.browser = null;
     this.page = null;
+  }
+
+  /**
+   * پیدا کردن مسیر Chrome
+   * @returns {string|null} - مسیر Chrome
+   */
+  findChromePath() {
+    const possiblePaths = [
+      'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+      'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+      'C:\\Users\\' + process.env.USERNAME + '\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe',
+      process.env.CHROME_PATH
+    ];
+
+    for (const chromePath of possiblePaths) {
+      if (chromePath && fs.existsSync(chromePath)) {
+        console.log(`✅ Chrome پیدا شد در: ${chromePath}`);
+        return chromePath;
+      }
+    }
+
+    console.log('⚠️ Chrome در مسیرهای معمول پیدا نشد');
+    return null;
   }
 
   /**
@@ -18,7 +43,8 @@ class BrowserManager {
     try {
       console.log('راه‌اندازی مرورگر...');
       
-      this.browser = await puppeteer.launch({
+      const chromePath = this.findChromePath();
+      const launchOptions = {
         headless: 'new',
         args: [
           '--no-sandbox',
@@ -30,12 +56,43 @@ class BrowserManager {
           '--disable-extensions',
           '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
         ],
-      });
+      };
+
+      // اگر Chrome پیدا شد، از اون استفاده کن
+      if (chromePath) {
+        launchOptions.executablePath = chromePath;
+        console.log(`🌐 استفاده از Chrome در: ${chromePath}`);
+      } else {
+        console.log('🌐 استفاده از Chrome پیش‌فرض Puppeteer');
+      }
+
+      this.browser = await puppeteer.launch(launchOptions);
 
       console.log('✅ مرورگر راه‌اندازی شد');
       return true;
     } catch (error) {
       console.error(`❌ خطا در راه‌اندازی مرورگر: ${error.message}`);
+      
+      // اگر Chrome پیدا نشد، سعی کن بدون headless اجرا کن
+      if (error.message.includes('Could not find Chrome')) {
+        console.log('🔄 تلاش برای راه‌اندازی بدون headless...');
+        try {
+          this.browser = await puppeteer.launch({
+            headless: false,
+            args: [
+              '--no-sandbox',
+              '--disable-gpu',
+              '--disable-dev-shm-usage',
+            ],
+          });
+          console.log('✅ مرورگر بدون headless راه‌اندازی شد');
+          return true;
+        } catch (retryError) {
+          console.error(`❌ خطا در راه‌اندازی بدون headless: ${retryError.message}`);
+          return false;
+        }
+      }
+      
       return false;
     }
   }
