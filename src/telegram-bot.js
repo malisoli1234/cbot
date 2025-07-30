@@ -123,6 +123,7 @@ const queue = async.queue(async (task, callback) => {
 // راه‌اندازی بات تلگرام
 const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: { interval: 500, autoStart: true } });
 const startTime = new Date();
+let lastMessageId = 0; // برای tracking آخرین پیام پردازش شده
 
 // تابع حذف پیام
 async function deleteMessage(messageId) {
@@ -173,8 +174,11 @@ bot.getMe()
 
 // مدیریت پیام‌های کانال
 bot.on('channel_post', async (msg) => {
-  // فقط پیام‌های متنی بعد از شروع ربات
-  if (msg.date * 1000 >= startTime.getTime() && msg.chat.id.toString() === CHANNEL_ID) {
+  // فقط پیام‌های جدید بعد از شروع ربات
+  if (msg.date * 1000 >= startTime.getTime() && 
+      msg.chat.id.toString() === CHANNEL_ID && 
+      msg.message_id > lastMessageId) {
+    
     if (!msg.text) {
       logger.info(`⚠️ پیام غیرمتنی نادیده گرفته شد: ${JSON.stringify(msg)}`);
       await deleteMessage(msg.message_id);
@@ -182,12 +186,21 @@ bot.on('channel_post', async (msg) => {
     }
 
     const messageText = msg.text.trim();
-    logger.info(`📩 پیام جدید از چنل: ${messageText}`);
+    logger.info(`📩 پیام جدید از چنل: ${messageText} (ID: ${msg.message_id})`);
+
+    // به‌روزرسانی آخرین پیام ID
+    lastMessageId = msg.message_id;
 
     // اضافه کردن به صف
     queue.push({ messageText, messageId: msg.message_id });
   } else {
-    logger.info(`📩 پیام قدیمی یا از چنل دیگر نادیده گرفته شد: ${msg.text || 'غیرمتنی'}`);
+    if (msg.message_id <= lastMessageId) {
+      logger.info(`⏭️ پیام قدیمی نادیده گرفته شد: ${msg.message_id} <= ${lastMessageId}`);
+    } else if (msg.date * 1000 < startTime.getTime()) {
+      logger.info(`⏭️ پیام قبل از شروع ربات نادیده گرفته شد: ${msg.text || 'غیرمتنی'}`);
+    } else {
+      logger.info(`⏭️ پیام از چنل دیگر نادیده گرفته شد: ${msg.text || 'غیرمتنی'}`);
+    }
   }
 });
 
@@ -212,7 +225,24 @@ process.on('SIGINT', async () => {
 async function startBot() {
   try {
     await connectDB();
+    
+    // گرفتن آخرین پیام‌های کانال برای تنظیم offset
+    try {
+      const updates = await bot.getUpdates({ limit: 1, timeout: 0 });
+      if (updates.length > 0) {
+        const lastUpdate = updates[updates.length - 1];
+        if (lastUpdate.channel_post && lastUpdate.channel_post.chat.id.toString() === CHANNEL_ID) {
+          lastMessageId = lastUpdate.channel_post.message_id;
+          logger.info(`📊 آخرین پیام ID تنظیم شد: ${lastMessageId}`);
+        }
+      }
+    } catch (error) {
+      logger.info(`⚠️ نتوانست آخرین پیام‌ها را دریافت کند: ${error.message}`);
+    }
+    
     logger.info('🤖 ربات تلگرام شروع به کار کرد...');
+    logger.info(`⏰ زمان شروع: ${startTime.toISOString()}`);
+    logger.info(`📊 آخرین پیام ID: ${lastMessageId}`);
   } catch (error) {
     logger.error(`❌ خطا در راه‌اندازی بات: ${error.message}`);
     process.exit(1);
