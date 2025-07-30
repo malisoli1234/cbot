@@ -1,9 +1,10 @@
 {
   "minPayout": 70,
   "telegram": {
-    "botToken": "YOUR_BOT_TOKEN_HERE",
-    "channelId": "@YOUR_CHANNEL_ID_HERE",
-    "enabled": false
+    "botToken": "7554355277:AAGFB8QuBEp9BqeZqD3xyVjZVlpzbRQ3xEg",
+    "inputChannelId": "@fatehsignalfilter",
+    "outputChannelId": "@fatehsignalbot",
+    "enabled": true
   },
   "database": {
     "uri": "mongodb://localhost:27017/currencies"

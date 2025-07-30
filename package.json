@@ -11,7 +11,9 @@
     "admin": "node src/server.js & timeout 8 && start http://localhost:5000",
     "build-react": "cd admin-frontend && npm run build",
     "dev-react": "cd admin-frontend && npm start",
-    "setup": "npm install && cd admin-frontend && npm install && npm run build"
+    "setup": "npm install && cd admin-frontend && npm install && npm run build",
+    "test-join": "node test-bot-join.js",
+    "test-send": "node test-bot-send.js"
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
