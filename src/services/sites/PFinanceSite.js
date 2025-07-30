@@ -16,28 +16,18 @@ class PFinanceSite extends BaseSite {
     };
 
     const setupSteps = [
-      { action: 'waitForSelector', selector: '.tutorial-v1__close-icon', timeout: 10000 },
+      { action: 'waitForSelector', selector: '.tutorial-v1__close-icon', timeout: 5000 },
       { action: 'click', selector: '.tutorial-v1__close-icon' },
-      { action: 'waitForSelector', selector: '.currencies-block__in .pair-number-wrap', timeout: 10000 },
+      { action: 'waitForSelector', selector: '.currencies-block__in .pair-number-wrap', timeout: 5000 },
       { action: 'click', selector: '.currencies-block__in .pair-number-wrap' },
-      { action: 'waitForSelector', selector: '.search__field', timeout: 10000 }
+      { action: 'waitForSelector', selector: '.search__field', timeout: 5000 }
     ];
 
-    // اضافه کردن fallback selectors
-    const fallbackSelectors = {
-      searchField: ['.search__field', '.search-field', 'input[type="text"]', '.search-input'],
-      resultsContainer: ['.assets-block__alist .alist__item', '.results-container', '.search-results', '.currency-list'],
-      currencyLabel: ['.alist__label', '.currency-label', '.pair-name', '.currency-name'],
-      payoutLabel: ['.alist__payout', '.payout-label', '.percentage', '.payout-value']
-    };
-
-    super('P.Finance', 'https://p.finance/en/cabinet/try-demo/', selectors, setupSteps, fallbackSelectors);
+    super('P.Finance', 'https://p.finance/en/cabinet/try-demo/', selectors, setupSteps);
   }
 
-
-
   /**
-   * راه‌اندازی سایت با روش جایگزین
+   * راه‌اندازی سایت
    * @param {object} page - صفحه Puppeteer
    * @returns {boolean} - نتیجه راه‌اندازی
    */
@@ -46,72 +36,23 @@ class PFinanceSite extends BaseSite {
       console.log(`🌐 راه‌اندازی سایت ${this.name}...`);
       await page.goto(this.url, { waitUntil: 'domcontentloaded', timeout: 15000 });
       console.log(`✅ صفحه ${this.name} لود شد`);
+      console.log(`عنوان صفحه: ${await page.title()}`);
 
-      // انتظار برای لود شدن کامل صفحه
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // بستن پاپ‌آپ
+      console.log('🔍 در حال پیدا کردن دکمه ضربدر پاپ‌آپ...');
+      await page.waitForSelector('.tutorial-v1__close-icon', { timeout: 5000 });
+      await page.click('.tutorial-v1__close-icon');
+      console.log('✅ پاپ‌آپ بسته شد.');
 
-      // تلاش برای بستن popup اگر وجود داشته باشد
-      try {
-        await page.waitForSelector('.tutorial-v1__close-icon', { timeout: 5000 });
-        await page.click('.tutorial-v1__close-icon');
-        console.log('✅ Popup بسته شد');
-      } catch (error) {
-        console.log('⚠️ Popup پیدا نشد یا قبلاً بسته شده');
-      }
+      // کلیک روی دکمه Litecoin OTC
+      console.log('🔍 در حال پیدا کردن دکمه Litecoin OTC...');
+      await page.waitForSelector('.currencies-block__in .pair-number-wrap', { timeout: 5000 });
+      await page.click('.currencies-block__in .pair-number-wrap');
+      console.log('✅ دکمه Litecoin OTC کلیک شد.');
 
-      // تلاش برای کلیک روی دکمه currencies
-      try {
-        await page.waitForSelector('.currencies-block__in .pair-number-wrap', { timeout: 10000 });
-        await page.click('.currencies-block__in .pair-number-wrap');
-        console.log('✅ دکمه currencies کلیک شد');
-      } catch (error) {
-        console.log('⚠️ دکمه currencies پیدا نشد، تلاش با selector جایگزین');
-        // تلاش با selector های جایگزین
-        const alternativeSelectors = [
-          '.currencies-block .pair-number-wrap',
-          '.currencies .pair-number',
-          '.currency-selector',
-          '.pair-selector'
-        ];
-
-        for (const selector of alternativeSelectors) {
-          try {
-            await page.waitForSelector(selector, { timeout: 3000 });
-            await page.click(selector);
-            console.log(`✅ دکمه با selector جایگزین کلیک شد: ${selector}`);
-            break;
-          } catch (e) {
-            console.log(`❌ selector جایگزین کار نکرد: ${selector}`);
-          }
-        }
-      }
-
-      // انتظار برای آماده شدن فیلد جستجو
-      try {
-        await page.waitForSelector('.search__field', { timeout: 10000 });
-        console.log('✅ فیلد جستجو آماده شد');
-      } catch (error) {
-        console.log('⚠️ فیلد جستجو پیدا نشد، تلاش با selector های جایگزین');
-        // تلاش با selector های جایگزین
-        const searchSelectors = [
-          '.search-field',
-          'input[type="text"]',
-          '.search-input',
-          '#search'
-        ];
-
-        for (const selector of searchSelectors) {
-          try {
-            await page.waitForSelector(selector, { timeout: 3000 });
-            console.log(`✅ فیلد جستجو با selector جایگزین آماده شد: ${selector}`);
-            // آپدیت selector اصلی
-            this.selectors.searchField = selector;
-            break;
-          } catch (e) {
-            console.log(`❌ selector جستجو کار نکرد: ${selector}`);
-          }
-        }
-      }
+      // صبر تا وقتی فیلد جستجو آماده بشه
+      await page.waitForSelector('.search__field', { timeout: 5000 });
+      console.log('✅ فیلد جستجو آماده شد');
 
       this.isInitialized = true;
       console.log(`✅ سایت ${this.name} آماده شد`);
@@ -122,7 +63,6 @@ class PFinanceSite extends BaseSite {
     }
   }
 
-
   /**
    * جستجوی ارز در سایت
    * @param {object} page - صفحه Puppeteer
@@ -130,68 +70,56 @@ class PFinanceSite extends BaseSite {
    * @returns {object} - نتیجه جستجو
    */
   async searchCurrency(page, currencyName) {
+    const startTime = Date.now();
     try {
-      console.log(`🔍 جستجو در ${this.name} برای: ${currencyName}`);
+      console.log(`🔍 در حال جستجوی ارز: ${currencyName}`);
+      await page.waitForSelector('.search__field', { timeout: 5000 });
+      await page.evaluate(() => document.querySelector('.search__field').value = '');
+      await page.type('.search__field', currencyName);
 
-      // پاک کردن فیلد جستجو با سرعت بیشتر
-      await page.evaluate((selector) => {
-        const field = document.querySelector(selector);
-        if (field) {
-          field.value = '';
-          field.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-      }, this.selectors.searchField);
-      
-      // تایپ کردن نام ارز با سرعت بیشتر
-      await page.type(this.selectors.searchField, currencyName, { delay: 50 });
-
-      // انتظار کوتاه‌تر برای لود شدن نتایج
+      // صبر تا وقتی حداقل یه آیتم لود بشه یا تایم‌اوت
       await page.waitForFunction(
-        (selector) => {
-          const container = document.querySelector(selector);
-          return container && container.children.length > 0;
-        },
-        { timeout: 3000 },
-        this.selectors.resultsContainer
+        () => document.querySelector('.assets-block__alist .alist__item') !== null || document.querySelector('.assets-block__alist') !== null,
+        { timeout: 5000 }
       );
 
-      // استخراج نتایج با بهینه‌سازی
-      const results = await page.evaluate((selectors) => {
-        const items = document.querySelectorAll(selectors.resultsContainer);
+      // استخراج و فرمت نتایج
+      const results = await page.evaluate(() => {
+        const items = document.querySelectorAll('.assets-block__alist .alist__item');
         const results = [];
-        
-        // محدود کردن تعداد نتایج برای سرعت بیشتر
-        const maxResults = 10;
-        const limitedItems = Array.from(items).slice(0, maxResults);
-        
-        limitedItems.forEach(item => {
+        items.forEach(item => {
           try {
-            const label = item.querySelector(selectors.currencyLabel)?.textContent?.trim() || 'N/A';
-            const payout = item.querySelector(selectors.payoutLabel)?.textContent?.trim() || 'N/A';
-            
-            // فرمت کردن نام ارز
-            let formattedLabel = label.replace('/', '');
-            if (formattedLabel.includes(' OTC')) {
-              formattedLabel = formattedLabel.replace(' OTC', '-OTC');
+            const link = item.querySelector('.alist__link');
+            let label = link?.querySelector('.alist__label')?.textContent || 'N/A';
+            let payout = link?.querySelector('.alist__payout')?.textContent || 'N/A';
+            // حذف اسلش و فرمت نام ارز
+            label = label.replace('/', '');
+            if (label.includes(' OTC')) {
+              label = label.replace(' OTC', '-OTC');
             }
-            
-            // فرمت کردن payout
-            const formattedPayout = payout.replace('+', '').replace('%', '');
-            
-            results.push({
-              currency: formattedLabel,
-              payout: formattedPayout,
-              originalLabel: label,
-              originalPayout: payout
-            });
+            // حذف علامت + و % از payout
+            payout = payout.replace('+', '').replace('%', '');
+            results.push({ currency: label, payout });
           } catch (e) {
-            // خطاهای جزئی را نادیده بگیر
+            console.error(`❌ خطا در استخراج آیتم: ${e.message}`);
           }
         });
-        
         return results;
-      }, this.selectors);
+      });
 
+      const duration = Date.now() - startTime;
+      if (results.length === 0) {
+        console.log(`❌ ارز ${currencyName} پیدا نشد. (زمان: ${duration}ms)`);
+        return {
+          success: false,
+          site: this.name,
+          results: [],
+          currencyName: currencyName,
+          timestamp: new Date()
+        };
+      }
+
+      console.log(`✅ ارز ${currencyName} جستجو شد. نتایج: ${JSON.stringify(results)} (زمان: ${duration}ms)`);
       return {
         success: true,
         site: this.name,
@@ -201,7 +129,8 @@ class PFinanceSite extends BaseSite {
       };
 
     } catch (error) {
-      console.error(`❌ خطا در جستجو در ${this.name}: ${error.message}`);
+      const duration = Date.now() - startTime;
+      console.error(`❌ خطا در جستجوی ارز ${currencyName}: ${error.message} (زمان: ${duration}ms)`);
       return {
         success: false,
         site: this.name,
@@ -212,8 +141,6 @@ class PFinanceSite extends BaseSite {
       };
     }
   }
-
-
 }
 
 module.exports = PFinanceSite; 
