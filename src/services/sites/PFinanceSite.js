@@ -39,15 +39,19 @@ class PFinanceSite extends BaseSite {
       console.log(`🔍 جستجو در ${this.name} برای: ${currencyName}`);
 
       // پاک کردن فیلد جستجو
-      await page.evaluate(() => document.querySelector(this.selectors.searchField).value = '');
+      await page.evaluate((selector) => {
+        const field = document.querySelector(selector);
+        if (field) field.value = '';
+      }, this.selectors.searchField);
       
       // تایپ کردن نام ارز
       await page.type(this.selectors.searchField, currencyName);
 
       // انتظار برای لود شدن نتایج
       await page.waitForFunction(
-        () => document.querySelector(this.selectors.resultsContainer) !== null,
-        { timeout: 5000 }
+        (selector) => document.querySelector(selector) !== null,
+        { timeout: 5000 },
+        this.selectors.resultsContainer
       );
 
       // استخراج نتایج
