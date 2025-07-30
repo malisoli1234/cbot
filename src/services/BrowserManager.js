@@ -44,19 +44,28 @@ class BrowserManager {
       console.log('راه‌اندازی مرورگر...');
       
       const chromePath = this.findChromePath();
-      const launchOptions = {
-        headless: 'new',
-        args: [
-          '--no-sandbox',
-          '--disable-gpu',
-          '--disable-dev-shm-usage',
-          '--disable-webgl',
-          '--disable-accelerated-2d-canvas',
-          '--blink-settings=imagesEnabled=false',
-          '--disable-extensions',
-          '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
-        ],
-      };
+                        const launchOptions = {
+                    headless: 'new',
+                    args: [
+                      '--no-sandbox',
+                      '--disable-gpu',
+                      '--disable-dev-shm-usage',
+                      '--disable-webgl',
+                      '--disable-accelerated-2d-canvas',
+                      '--blink-settings=imagesEnabled=false',
+                      '--disable-extensions',
+                      '--disable-logging',
+                      '--disable-default-apps',
+                      '--disable-background-timer-throttling',
+                      '--disable-backgrounding-occluded-windows',
+                      '--disable-renderer-backgrounding',
+                      '--disable-features=TranslateUI',
+                      '--disable-ipc-flooding-protection',
+                      '--log-level=3',
+                      '--silent-launch',
+                      '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
+                    ],
+                  };
 
       // اگر Chrome پیدا شد، از اون استفاده کن
       if (chromePath) {
@@ -77,14 +86,17 @@ class BrowserManager {
       if (error.message.includes('Could not find Chrome')) {
         console.log('🔄 تلاش برای راه‌اندازی بدون headless...');
         try {
-          this.browser = await puppeteer.launch({
-            headless: false,
-            args: [
-              '--no-sandbox',
-              '--disable-gpu',
-              '--disable-dev-shm-usage',
-            ],
-          });
+                                this.browser = await puppeteer.launch({
+                        headless: false,
+                        args: [
+                          '--no-sandbox',
+                          '--disable-gpu',
+                          '--disable-dev-shm-usage',
+                          '--disable-logging',
+                          '--log-level=3',
+                          '--silent-launch',
+                        ],
+                      });
           console.log('✅ مرورگر بدون headless راه‌اندازی شد');
           return true;
         } catch (retryError) {
