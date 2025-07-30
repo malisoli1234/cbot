@@ -42,35 +42,39 @@ class SearchController {
         searchResults = result.searchResults;
         searchTerm = result.messageInfo.searchTerm;
         
-        // ذخیره در دیتابیس با اطلاعات پیام
-        const currencyRecord = new Currency({
-          currencyName: result.messageInfo.currencyName,
-          searchTerm: searchTerm,
-          results: searchResults.map(result => ({
-            site: result.site,
-            currency: result.currencyName || result.messageInfo.currencyName,
-            payout: result.results?.[0]?.payout || 'N/A'
-          })),
-          telegramMessageId: telegramMessageId || 0,
-          telegramChannelId: telegramChannelId || '',
-          status: 'processed',
-          messageInfo: {
-            pattern: result.messageInfo.pattern,
-            timeFrame: result.messageInfo.timeFrame,
-            direction: result.messageInfo.direction,
-            network: result.messageInfo.network,
-            messageType: result.messageInfo.messageType
-          }
-        });
+        // ذخیره در دیتابیس با اطلاعات پیام (اگر دیتابیس در دسترس باشه)
+        try {
+          const currencyRecord = new Currency({
+            currencyName: result.messageInfo.currencyName,
+            searchTerm: searchTerm,
+            results: searchResults.map(result => ({
+              site: result.site,
+              currency: result.currencyName || result.messageInfo.currencyName,
+              payout: result.results?.[0]?.payout || 'N/A'
+            })),
+            telegramMessageId: telegramMessageId || 0,
+            telegramChannelId: telegramChannelId || '',
+            status: 'processed',
+            messageInfo: {
+              pattern: result.messageInfo.pattern,
+              timeFrame: result.messageInfo.timeFrame,
+              direction: result.messageInfo.direction,
+              network: result.messageInfo.network,
+              messageType: result.messageInfo.messageType
+            }
+          });
 
-        await currencyRecord.save();
-        console.log(`💾 نتایج در دیتابیس ذخیره شد: ${result.messageInfo.currencyName}`);
+          await currencyRecord.save();
+          console.log(`💾 نتایج در دیتابیس ذخیره شد: ${result.messageInfo.currencyName}`);
+        } catch (dbError) {
+          console.log(`⚠️ Could not save to database: ${dbError.message}`);
+        }
 
         return res.json({
           status: 'success',
           message: `جستجو برای ${result.messageInfo.currencyName} انجام شد`,
           results: searchResults.flatMap(result => result.results || []),
-          searchId: currencyRecord._id,
+          searchId: 'temp-id',
           messageInfo: result.messageInfo,
           searchedSites: result.searchedSites
         });
@@ -80,22 +84,26 @@ class SearchController {
         console.log(`🔍 درخواست جستجو برای: ${currency}`);
         searchResults = await this.scrapingService.searchCurrency(currency);
         
-        // ذخیره در دیتابیس
-        const currencyRecord = new Currency({
-          currencyName: currency,
-          searchTerm: currency,
-          results: searchResults.map(result => ({
-            site: result.site,
-            currency: result.currencyName || currency,
-            payout: result.results?.[0]?.payout || 'N/A'
-          })),
-          telegramMessageId: telegramMessageId || 0,
-          telegramChannelId: telegramChannelId || '',
-          status: 'processed'
-        });
+        // ذخیره در دیتابیس (اگر دیتابیس در دسترس باشه)
+        try {
+          const currencyRecord = new Currency({
+            currencyName: currency,
+            searchTerm: currency,
+            results: searchResults.map(result => ({
+              site: result.site,
+              currency: result.currencyName || currency,
+              payout: result.results?.[0]?.payout || 'N/A'
+            })),
+            telegramMessageId: telegramMessageId || 0,
+            telegramChannelId: telegramChannelId || '',
+            status: 'processed'
+          });
 
-        await currencyRecord.save();
-        console.log(`💾 نتایج در دیتابیس ذخیره شد: ${currency}`);
+          await currencyRecord.save();
+          console.log(`💾 نتایج در دیتابیس ذخیره شد: ${currency}`);
+        } catch (dbError) {
+          console.log(`⚠️ Could not save to database: ${dbError.message}`);
+        }
 
         return res.json({
           status: 'success',
