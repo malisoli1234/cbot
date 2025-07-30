@@ -74,7 +74,7 @@ class BaseSite {
     try {
       switch (step.action) {
         case 'waitForSelector':
-          await page.waitForSelector(step.selector, { timeout: step.timeout || 3000 });
+          await page.waitForSelector(step.selector, { timeout: step.timeout || 10000 });
           break;
         case 'click':
           await page.click(step.selector);
