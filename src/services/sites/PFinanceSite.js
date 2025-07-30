@@ -38,28 +38,38 @@ class PFinanceSite extends BaseSite {
     try {
       console.log(`🔍 جستجو در ${this.name} برای: ${currencyName}`);
 
-      // پاک کردن فیلد جستجو
+      // پاک کردن فیلد جستجو با سرعت بیشتر
       await page.evaluate((selector) => {
         const field = document.querySelector(selector);
-        if (field) field.value = '';
+        if (field) {
+          field.value = '';
+          field.dispatchEvent(new Event('input', { bubbles: true }));
+        }
       }, this.selectors.searchField);
       
-      // تایپ کردن نام ارز
-      await page.type(this.selectors.searchField, currencyName);
+      // تایپ کردن نام ارز با سرعت بیشتر
+      await page.type(this.selectors.searchField, currencyName, { delay: 50 });
 
-      // انتظار برای لود شدن نتایج
+      // انتظار کوتاه‌تر برای لود شدن نتایج
       await page.waitForFunction(
-        (selector) => document.querySelector(selector) !== null,
-        { timeout: 5000 },
+        (selector) => {
+          const container = document.querySelector(selector);
+          return container && container.children.length > 0;
+        },
+        { timeout: 3000 },
         this.selectors.resultsContainer
       );
 
-      // استخراج نتایج
+      // استخراج نتایج با بهینه‌سازی
       const results = await page.evaluate((selectors) => {
         const items = document.querySelectorAll(selectors.resultsContainer);
         const results = [];
         
-        items.forEach(item => {
+        // محدود کردن تعداد نتایج برای سرعت بیشتر
+        const maxResults = 10;
+        const limitedItems = Array.from(items).slice(0, maxResults);
+        
+        limitedItems.forEach(item => {
           try {
             const label = item.querySelector(selectors.currencyLabel)?.textContent?.trim() || 'N/A';
             const payout = item.querySelector(selectors.payoutLabel)?.textContent?.trim() || 'N/A';
@@ -80,7 +90,7 @@ class PFinanceSite extends BaseSite {
               originalPayout: payout
             });
           } catch (e) {
-            console.error(`❌ خطا در استخراج آیتم: ${e.message}`);
+            // خطاهای جزئی را نادیده بگیر
           }
         });
         

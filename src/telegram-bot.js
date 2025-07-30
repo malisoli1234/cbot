@@ -60,17 +60,17 @@ const queue = async.queue(async (task, callback) => {
     const searchCurrency = messageInfo.searchTerm;
     logger.info(`🔍 پیام پردازش شد: ${messageInfo.pattern} - ${currencyName}, برای جستجو: ${searchCurrency}`);
 
-    // ارسال درخواست به API با پیام کامل
+    // ارسال درخواست به API با timeout کوتاه‌تر
     const response = await fetchWithRetry(API_URL, { 
       message: messageText,
       telegramMessageId: messageId,
       telegramChannelId: CHANNEL_ID
-    });
+    }, 1, 2000); // کاهش retries و timeout
     
     const { status, results, searchId, messageInfo: apiMessageInfo } = response.data;
     logger.info(`📤 پاسخ API: ${JSON.stringify(response.data)}`);
 
-    // پیدا کردن نتیجه منطبق
+    // پیدا کردن نتیجه منطبق با بهینه‌سازی
     const matchedResult = results.find(result => {
       // تطبیق دقیق
       if (result.currency === currencyName) return true;
@@ -156,7 +156,7 @@ const queue = async.queue(async (task, callback) => {
     await deleteMessage(task.messageId);
   }
   callback();
-}, 5); // حداکثر 5 درخواست همزمان
+}, 10); // افزایش تعداد همزمان به 10
 
 // راه‌اندازی بات تلگرام
 const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: { interval: 500, autoStart: true } });
@@ -184,18 +184,24 @@ async function updateCurrencyStatus(searchId, status) {
 }
 
 // تابع تلاش مجدد برای درخواست API
-async function fetchWithRetry(url, data, retries = 2, timeout = 3000) {
+async function fetchWithRetry(url, data, retries = 1, timeout = 2000) {
   for (let i = 0; i < retries; i++) {
     try {
-      const response = await axios.post(url, data, { timeout });
+      const response = await axios.post(url, data, { 
+        timeout,
+        headers: {
+          'Content-Type': 'application/json',
+          'Connection': 'keep-alive'
+        }
+      });
       return response;
     } catch (e) {
       if (i === retries - 1) {
-        logger.error(`❌ خطا در درخواست API برای ${data.currency}: ${e.message}`);
+        logger.error(`❌ خطا در درخواست API برای ${data.message}: ${e.message}`);
         throw e;
       }
-      logger.info(`🔄 تلاش مجدد (${i + 1}/${retries}) برای ${data.currency}`);
-      await new Promise(resolve => setTimeout(resolve, 500));
+      logger.info(`🔄 تلاش مجدد (${i + 1}/${retries}) برای ${data.message}`);
+      await new Promise(resolve => setTimeout(resolve, 200)); // کاهش delay
     }
   }
 }
