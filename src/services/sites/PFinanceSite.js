@@ -48,7 +48,7 @@ class PFinanceSite extends BaseSite {
       console.log(`✅ صفحه ${this.name} لود شد`);
 
       // انتظار برای لود شدن کامل صفحه
-      await page.waitForTimeout(2000);
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       // تلاش برای بستن popup اگر وجود داشته باشد
       try {
