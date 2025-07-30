@@ -50,7 +50,26 @@ app.use(express.static(path.join(__dirname, '../admin-frontend/build')));
 // Serve React app for all other routes
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/admin') && !req.path.startsWith('/api')) {
-    res.sendFile(path.join(__dirname, '../admin-frontend/build/index.html'));
+    const indexPath = path.join(__dirname, '../admin-frontend/build/index.html');
+    
+    // Check if file exists
+    if (!require('fs').existsSync(indexPath)) {
+      console.error('❌ React build not found:', indexPath);
+      return res.status(500).json({
+        status: 'error',
+        message: 'React app not built. Please run: cd admin-frontend && npm run build'
+      });
+    }
+    
+    res.sendFile(indexPath, (err) => {
+      if (err) {
+        console.error('❌ Error serving React app:', err);
+        res.status(500).json({
+          status: 'error',
+          message: 'خطا در بارگذاری React app'
+        });
+      }
+    });
   }
 });
 
