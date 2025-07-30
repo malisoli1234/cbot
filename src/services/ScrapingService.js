@@ -3,7 +3,7 @@ const CurrencyParser = require('../utils/currencyParser');
 const MessageParser = require('../utils/messageParser');
 
 // Import site modules
-const { PFinanceSite, ExampleSite } = require('./sites');
+const { PFinanceSite, ExampleSite, OlympTradeSite } = require('./sites');
 
 class ScrapingService {
   constructor() {
@@ -14,6 +14,7 @@ class ScrapingService {
     // تعریف سایت‌ها با نام‌های مشخص
     this.sites = {
       pfinance: new PFinanceSite(),
+      olymp: new OlympTradeSite(),
       // example: new ExampleSite(), // برای فعال کردن، این خط رو uncomment کنید
     };
   }

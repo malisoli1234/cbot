@@ -27,8 +27,8 @@ class MessageParser {
     this.siteMapping = {
       PO: ['pfinance'], // پیام‌های PO فقط در P.Finance
       QU: ['pfinance'], // پیام‌های QU فقط در P.Finance
-      OL: ['pfinance'], // پیام‌های OL فقط در P.Finance
-      ORG: ['pfinance', 'example'], // پیام‌های ORG در همه سایت‌ها
+      OL: ['olymp'], // پیام‌های OL در Olymp Trade
+      ORG: ['pfinance', 'olymp'], // پیام‌های ORG در همه سایت‌ها
       SIMPLE_FORMAT: ['pfinance'], // پیام‌های ساده بدون prefix در P.Finance
       SIMPLE: ['pfinance'], // پیام‌های ساده در P.Finance
       DEFAULT: ['pfinance'] // پیش‌فرض
