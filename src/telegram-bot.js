@@ -83,6 +83,22 @@ const queue = async.queue(async (task, callback) => {
       const normalizedResult = result.currency.replace('-OTC', '-OTCp');
       if (normalizedResult === currencyName) return true;
       
+      // تطبیق با تغییرات نام ارز (مثل BTC -> Bitcoin)
+      const currencyBase = currencyName.split('-')[0];
+      const resultBase = result.currency.split('-')[0];
+      
+      // تطبیق BTC با Bitcoin
+      if ((currencyBase === 'BTC' && resultBase === 'Bitcoin') ||
+          (currencyBase === 'Bitcoin' && resultBase === 'BTC')) {
+        return true;
+      }
+      
+      // تطبیق ETH با Ethereum
+      if ((currencyBase === 'ETH' && resultBase === 'Ethereum') ||
+          (currencyBase === 'Ethereum' && resultBase === 'ETH')) {
+        return true;
+      }
+      
       return false;
     });
     
