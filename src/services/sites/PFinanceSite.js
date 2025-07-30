@@ -16,14 +16,22 @@ class PFinanceSite extends BaseSite {
     };
 
     const setupSteps = [
-      { action: 'waitForSelector', selector: '.tutorial-v1__close-icon', timeout: 5000 },
+      { action: 'waitForSelector', selector: '.tutorial-v1__close-icon', timeout: 3000 },
       { action: 'click', selector: '.tutorial-v1__close-icon' },
-      { action: 'waitForSelector', selector: '.currencies-block__in .pair-number-wrap', timeout: 5000 },
+      { action: 'waitForSelector', selector: '.currencies-block__in .pair-number-wrap', timeout: 3000 },
       { action: 'click', selector: '.currencies-block__in .pair-number-wrap' },
-      { action: 'waitForSelector', selector: '.search__field', timeout: 5000 }
+      { action: 'waitForSelector', selector: '.search__field', timeout: 3000 }
     ];
 
-    super('P.Finance', 'https://p.finance/en/cabinet/try-demo/', selectors, setupSteps);
+    // اضافه کردن fallback selectors
+    const fallbackSelectors = {
+      searchField: ['.search__field', '.search-field', 'input[type="text"]'],
+      resultsContainer: ['.assets-block__alist .alist__item', '.results-container', '.search-results'],
+      currencyLabel: ['.alist__label', '.currency-label', '.pair-name'],
+      payoutLabel: ['.alist__payout', '.payout-label', '.percentage']
+    };
+
+    super('P.Finance', 'https://p.finance/en/cabinet/try-demo/', selectors, setupSteps, fallbackSelectors);
   }
 
 

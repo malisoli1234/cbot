@@ -3,11 +3,12 @@
  */
 
 class BaseSite {
-  constructor(name, url, selectors, setupSteps = []) {
+  constructor(name, url, selectors, setupSteps = [], fallbackSelectors = {}) {
     this.name = name;
     this.url = url;
     this.selectors = selectors;
     this.setupSteps = setupSteps;
+    this.fallbackSelectors = fallbackSelectors;
     this.isInitialized = false;
   }
 
@@ -22,9 +23,9 @@ class BaseSite {
       await page.goto(this.url, { waitUntil: 'domcontentloaded', timeout: 15000 });
       console.log(`✅ صفحه ${this.name} لود شد`);
 
-      // اجرای مراحل setup
+      // اجرای مراحل setup با retry
       for (const step of this.setupSteps) {
-        await this.executeSetupStep(page, step);
+        await this.executeSetupStepWithRetry(page, step);
       }
 
       this.isInitialized = true;
@@ -37,6 +38,34 @@ class BaseSite {
   }
 
   /**
+   * اجرای مرحله setup با retry
+   * @param {object} page - صفحه Puppeteer
+   * @param {object} step - مرحله setup
+   */
+  async executeSetupStepWithRetry(page, step) {
+    const maxRetries = 2;
+    let lastError = null;
+
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        await this.executeSetupStep(page, step);
+        return; // موفقیت
+      } catch (error) {
+        lastError = error;
+        console.log(`⚠️ تلاش ${i + 1}/${maxRetries} برای ${step.action} ناموفق: ${error.message}`);
+        
+        if (i < maxRetries - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+    }
+
+    // اگر همه retry ها ناموفق بودند
+    console.error(`❌ خطا در اجرای step ${step.action}: ${lastError.message}`);
+    throw lastError;
+  }
+
+  /**
    * اجرای مرحله setup
    * @param {object} page - صفحه Puppeteer
    * @param {object} step - مرحله setup
@@ -45,7 +74,7 @@ class BaseSite {
     try {
       switch (step.action) {
         case 'waitForSelector':
-          await page.waitForSelector(step.selector, { timeout: step.timeout || 5000 });
+          await page.waitForSelector(step.selector, { timeout: step.timeout || 3000 });
           break;
         case 'click':
           await page.click(step.selector);
@@ -63,6 +92,18 @@ class BaseSite {
       console.error(`❌ خطا در اجرای step ${step.action}: ${error.message}`);
       throw error;
     }
+  }
+
+  /**
+   * پیدا کردن selector با fallback
+   * @param {string} selectorType - نوع selector
+   * @returns {string} - selector مناسب
+   */
+  getSelector(selectorType) {
+    const primarySelector = this.selectors[selectorType];
+    const fallbackSelectors = this.fallbackSelectors[selectorType] || [];
+    
+    return [primarySelector, ...fallbackSelectors];
   }
 
   /**

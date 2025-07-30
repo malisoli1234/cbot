@@ -27,6 +27,7 @@ import {
   Pagination,
   LinearProgress,
   Grid,
+  Alert,
 } from '@mui/material';
 import {
   Search,
@@ -35,6 +36,9 @@ import {
   FilterList,
   Refresh,
   Download,
+  CheckCircle,
+  Error,
+  Pending,
 } from '@mui/icons-material';
 
 function Records() {
@@ -46,98 +50,105 @@ function Records() {
   const [page, setPage] = useState(1);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [error, setError] = useState(null);
 
   const recordsPerPage = 10;
 
-  // Mock data
-  const mockRecords = [
-    {
-      id: 1,
-      currency: 'EUR/USD',
-      site: 'P.Finance',
-      status: 'success',
-      result: '1.0850',
-      timestamp: '2024-01-15 14:30:25',
-      messageInfo: 'PO: EURUSD-OTCp 1min BUY trc',
-      processingTime: '2.3s',
-    },
-    {
-      id: 2,
-      currency: 'GBP/JPY',
-      site: 'Example Site',
-      status: 'error',
-      result: 'خطا در اتصال',
-      timestamp: '2024-01-15 14:28:12',
-      messageInfo: 'QU: GBPJPY-OTCp 5min SELL trc',
-      processingTime: '5.1s',
-    },
-    {
-      id: 3,
-      currency: 'USD/CHF',
-      site: 'P.Finance',
-      status: 'success',
-      result: '0.8920',
-      timestamp: '2024-01-15 14:25:45',
-      messageInfo: 'OL: USDCHF-OTCp 1min BUY trc',
-      processingTime: '1.8s',
-    },
-    {
-      id: 4,
-      currency: 'AUD/CAD',
-      site: 'Test Site',
-      status: 'pending',
-      result: 'در حال پردازش',
-      timestamp: '2024-01-15 14:22:18',
-      messageInfo: 'ORG: AUDCAD-OTCp 1min BUY trc',
-      processingTime: '0.0s',
-    },
-  ];
-
-  useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setRecords(mockRecords);
+  // دریافت رکوردها از API
+  const fetchRecords = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch('/api/history');
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        setRecords(data.data || []);
+      } else {
+        setError('خطا در دریافت رکوردها');
+      }
+    } catch (error) {
+      console.error('خطا در دریافت رکوردها:', error);
+      setError('خطا در اتصال به سرور');
+    } finally {
       setLoading(false);
-    }, 1000);
-  }, []);
-
-  const getStatusChip = (status) => {
-    const statusConfig = {
-      success: { color: 'success', label: 'موفق' },
-      error: { color: 'error', label: 'خطا' },
-      pending: { color: 'warning', label: 'در حال پردازش' },
-    };
-
-    const config = statusConfig[status] || statusConfig.error;
-    return <Chip label={config.label} color={config.color} size="small" />;
+    }
   };
 
+  useEffect(() => {
+    fetchRecords();
+  }, []);
+
+  // فیلتر کردن رکوردها
   const filteredRecords = records.filter(record => {
-    const matchesSearch = record.currency.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         record.messageInfo.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = record.currencyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         record.searchTerm?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || record.status === statusFilter;
-    const matchesSite = siteFilter === 'all' || record.site === siteFilter;
+    const matchesSite = siteFilter === 'all' || record.searchedSites?.includes(siteFilter);
     
     return matchesSearch && matchesStatus && matchesSite;
   });
 
+  // محاسبه رکوردهای قابل نمایش
   const paginatedRecords = filteredRecords.slice(
     (page - 1) * recordsPerPage,
     page * recordsPerPage
   );
+
+  const getStatusChip = (status) => {
+    const statusConfig = {
+      success: { color: 'success', icon: <CheckCircle />, label: 'موفق' },
+      error: { color: 'error', icon: <Error />, label: 'خطا' },
+      pending: { color: 'warning', icon: <Pending />, label: 'در انتظار' },
+      deleted: { color: 'default', icon: <Delete />, label: 'حذف شده' },
+      edited: { color: 'info', icon: <CheckCircle />, label: 'ویرایش شده' },
+    };
+
+    const config = statusConfig[status] || statusConfig.error;
+
+    return (
+      <Chip
+        icon={config.icon}
+        label={config.label}
+        color={config.color}
+        size="small"
+        variant="outlined"
+      />
+    );
+  };
+
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return 'نامشخص';
+    const date = new Date(timestamp);
+    return date.toLocaleString('fa-IR');
+  };
+
+  const formatResults = (results) => {
+    if (!results || results.length === 0) return 'هیچ نتیجه‌ای';
+    
+    return results.map(result => 
+      `${result.currency}: ${result.payout}%`
+    ).join(', ');
+  };
 
   const handleViewDetails = (record) => {
     setSelectedRecord(record);
     setDialogOpen(true);
   };
 
-  const handleDelete = (id) => {
-    setRecords(records.filter(record => record.id !== id));
+  const handleDelete = async (id) => {
+    // TODO: پیاده‌سازی حذف رکورد
+    console.log('حذف رکورد:', id);
   };
 
   const handleExport = () => {
-    // Export functionality
-    console.log('Exporting records...');
+    // TODO: پیاده‌سازی export
+    console.log('Export records');
+  };
+
+  const handleRefresh = () => {
+    fetchRecords();
   };
 
   if (loading) {
@@ -207,7 +218,7 @@ function Records() {
 
             <Box sx={{ ml: 'auto', display: 'flex', gap: 1 }}>
               <Tooltip title="بروزرسانی">
-                <IconButton>
+                <IconButton onClick={handleRefresh}>
                   <Refresh />
                 </IconButton>
               </Tooltip>
@@ -242,20 +253,20 @@ function Records() {
                   <TableRow key={record.id}>
                     <TableCell>
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        {record.currency}
+                        {record.currencyName}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {record.messageInfo}
+                        {record.searchTerm}
                       </Typography>
                     </TableCell>
-                    <TableCell>{record.site}</TableCell>
+                    <TableCell>{record.searchedSites}</TableCell>
                     <TableCell>{getStatusChip(record.status)}</TableCell>
                     <TableCell>
                       <Typography
                         variant="body2"
                         color={record.status === 'error' ? 'error.main' : 'text.primary'}
                       >
-                        {record.result}
+                        {formatResults(record.results)}
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -265,7 +276,7 @@ function Records() {
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" color="text.secondary">
-                        {record.timestamp}
+                        {formatTimestamp(record.timestamp)}
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -319,7 +330,7 @@ function Records() {
                     ارز
                   </Typography>
                   <Typography variant="body1" sx={{ mb: 2 }}>
-                    {selectedRecord.currency}
+                    {selectedRecord.currencyName}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -327,7 +338,7 @@ function Records() {
                     سایت
                   </Typography>
                   <Typography variant="body1" sx={{ mb: 2 }}>
-                    {selectedRecord.site}
+                    {selectedRecord.searchedSites}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -351,7 +362,7 @@ function Records() {
                     پیام اصلی
                   </Typography>
                   <Typography variant="body1" sx={{ mb: 2 }}>
-                    {selectedRecord.messageInfo}
+                    {selectedRecord.searchTerm}
                   </Typography>
                 </Grid>
                 <Grid item xs={12}>
@@ -359,7 +370,7 @@ function Records() {
                     نتیجه
                   </Typography>
                   <Typography variant="body1" sx={{ mb: 2 }}>
-                    {selectedRecord.result}
+                    {formatResults(selectedRecord.results)}
                   </Typography>
                 </Grid>
                 <Grid item xs={12}>
@@ -367,7 +378,7 @@ function Records() {
                     تاریخ و زمان
                   </Typography>
                   <Typography variant="body1">
-                    {selectedRecord.timestamp}
+                    {formatTimestamp(selectedRecord.timestamp)}
                   </Typography>
                 </Grid>
               </Grid>
