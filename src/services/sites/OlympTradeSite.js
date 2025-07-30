@@ -24,7 +24,7 @@ class OlympTradeSite extends BaseSite {
       { action: 'waitForSelector', selector: '.search-input, input[placeholder*="search"]', timeout: 10000 }
     ];
 
-    super('Olymp Trade', 'https://olymptrade.com/platform?project=bo', selectors, setupSteps);
+    super('Olymp Trade', 'https://olymptrade.com/', selectors, setupSteps);
   }
 
   /**
@@ -46,8 +46,8 @@ class OlympTradeSite extends BaseSite {
         console.log(`❌ Request failed: ${request.url()} - ${request.failure().errorText}`);
       });
 
-      // رفتن به صفحه
-      console.log('🔄 در حال رفتن به صفحه...');
+      // رفتن به صفحه اصلی
+      console.log('🔄 در حال رفتن به صفحه اصلی...');
       const response = await page.goto(this.url, { 
         waitUntil: 'networkidle2', 
         timeout: 30000 
@@ -91,19 +91,13 @@ class OlympTradeSite extends BaseSite {
       // صبر برای لود کامل
       await new Promise(resolve => setTimeout(resolve, 3000));
 
-      // پیدا کردن فیلد جستجو
-      const searchField = await page.$('.search-input, input[placeholder*="search"], input[placeholder*="جستجو"]');
-      if (searchField) {
-        console.log('✅ فیلد جستجو پیدا شد');
-      } else {
-        console.log('⚠️ فیلد جستجو پیدا نشد، ممکنه نیاز به لاگین باشه');
-        
-        // چک کردن محتوای صفحه
-        const pageContent = await page.content();
-        console.log(`📄 طول محتوای صفحه: ${pageContent.length} کاراکتر`);
-        console.log(`🔍 آیا کلمه "login" در صفحه هست: ${pageContent.toLowerCase().includes('login')}`);
-        console.log(`🔍 آیا کلمه "sign" در صفحه هست: ${pageContent.toLowerCase().includes('sign')}`);
-      }
+      // چک کردن محتوای صفحه
+      const pageContent = await page.content();
+      console.log(`📄 طول محتوای صفحه: ${pageContent.length} کاراکتر`);
+      console.log(`🔍 آیا کلمه "login" در صفحه هست: ${pageContent.toLowerCase().includes('login')}`);
+      console.log(`🔍 آیا کلمه "sign" در صفحه هست: ${pageContent.toLowerCase().includes('sign')}`);
+      console.log(`🔍 آیا کلمه "demo" در صفحه هست: ${pageContent.toLowerCase().includes('demo')}`);
+      console.log(`🔍 آیا کلمه "trading" در صفحه هست: ${pageContent.toLowerCase().includes('trading')}`);
 
       this.isInitialized = true;
       console.log(`✅ سایت ${this.name} آماده شد`);
@@ -127,84 +121,16 @@ class OlympTradeSite extends BaseSite {
     try {
       console.log(`🔍 در حال جستجوی ارز: ${currencyName}`);
 
-      // پیدا کردن فیلد جستجو
-      const searchSelectors = [
-        '.search-input',
-        'input[placeholder*="search"]',
-        'input[placeholder*="جستجو"]',
-        '.search-field',
-        'input[type="text"]'
-      ];
-
-      let searchField = null;
-      for (const selector of searchSelectors) {
-        try {
-          searchField = await page.$(selector);
-          if (searchField) break;
-        } catch (e) {
-          continue;
-        }
-      }
-
-      if (!searchField) {
-        console.log('⚠️ فیلد جستجو پیدا نشد، تلاش برای پیدا کردن ارز در لیست...');
-        return await this.searchInList(page, currencyName);
-      }
-
-      // پاک کردن فیلد جستجو
-      await page.evaluate(() => {
-        const field = document.querySelector('.search-input, input[placeholder*="search"], input[placeholder*="جستجو"]');
-        if (field) field.value = '';
-      });
-
-      // تایپ کردن نام ارز
-      await page.type('.search-input, input[placeholder*="search"], input[placeholder*="جستجو"]', currencyName);
-
-      // صبر برای لود شدن نتایج
-      await page.waitForFunction(
-        () => {
-          const results = document.querySelectorAll('.assets-list .item, .instruments-list .item, .pairs-list .item');
-          return results.length > 0;
-        },
-        { timeout: 10000 }
-      );
-
-      // استخراج نتایج
-      const results = await page.evaluate(() => {
-        const items = document.querySelectorAll('.assets-list .item, .instruments-list .item, .pairs-list .item');
-        const results = [];
-        
-        items.forEach(item => {
-          try {
-            const label = item.querySelector('.asset-name, .pair-name, .instrument-name')?.textContent?.trim() || 'N/A';
-            const payout = item.querySelector('.payout, .profit, .percentage')?.textContent?.trim() || 'N/A';
-            
-            // پاک کردن کاراکترهای اضافی
-            const cleanPayout = payout.replace(/[^\d.-]/g, '');
-            
-            results.push({
-              currency: label,
-              payout: cleanPayout || 'N/A',
-              originalLabel: label,
-              originalPayout: payout
-            });
-          } catch (e) {
-            console.error(`❌ خطا در استخراج آیتم: ${e.message}`);
-          }
-        });
-        
-        return results;
-      });
-
-      const duration = Date.now() - startTime;
-      console.log(`✅ جستجو در ${this.name} تمام شد. نتایج: ${results.length} (زمان: ${duration}ms)`);
+      // فعلاً فقط لاگ می‌کنیم چون هنوز به صفحه trading نرفتیم
+      console.log(`⚠️ هنوز در صفحه اصلی هستیم، نیاز به رفتن به صفحه trading داریم`);
 
       return {
-        success: true,
+        success: false,
         site: this.name,
-        results: results,
+        error: 'هنوز در صفحه اصلی هستیم، نیاز به رفتن به صفحه trading داریم',
+        results: [],
         currencyName: currencyName,
-        searchDuration: duration,
+        searchDuration: Date.now() - startTime,
         timestamp: new Date()
       };
 
@@ -219,91 +145,6 @@ class OlympTradeSite extends BaseSite {
         results: [],
         currencyName: currencyName,
         searchDuration: duration,
-        timestamp: new Date()
-      };
-    }
-  }
-
-  /**
-   * جستجو در لیست ارزها (اگر فیلد جستجو نباشه)
-   * @param {object} page - صفحه Puppeteer
-   * @param {string} currencyName - نام ارز
-   * @returns {object} - نتیجه جستجو
-   */
-  async searchInList(page, currencyName) {
-    try {
-      console.log(`🔍 جستجو در لیست ارزها برای: ${currencyName}`);
-      
-      // اسکرول کردن صفحه برای لود شدن همه ارزها
-      await page.evaluate(() => {
-        window.scrollTo(0, document.body.scrollHeight);
-      });
-      
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // استخراج همه ارزها از صفحه
-      const allCurrencies = await page.evaluate(() => {
-        const items = document.querySelectorAll('.asset-item, .instrument-item, .pair-item, [data-asset]');
-        const currencies = [];
-        
-        items.forEach(item => {
-          try {
-            const label = item.querySelector('.asset-name, .pair-name, .instrument-name')?.textContent?.trim() || 
-                         item.getAttribute('data-asset') || 'N/A';
-            const payout = item.querySelector('.payout, .profit, .percentage')?.textContent?.trim() || 'N/A';
-            
-            currencies.push({
-              currency: label,
-              payout: payout.replace(/[^\d.-]/g, '') || 'N/A',
-              originalLabel: label,
-              originalPayout: payout
-            });
-          } catch (e) {
-            // ignore
-          }
-        });
-        
-        return currencies;
-      });
-
-      // پیدا کردن ارز مورد نظر
-      const matchedCurrency = allCurrencies.find(item => 
-        item.currency.toLowerCase().includes(currencyName.toLowerCase()) ||
-        currencyName.toLowerCase().includes(item.currency.toLowerCase())
-      );
-
-      if (matchedCurrency) {
-        console.log(`✅ ارز ${currencyName} در لیست پیدا شد`);
-        return {
-          success: true,
-          site: this.name,
-          results: [matchedCurrency],
-          currencyName: currencyName,
-          searchDuration: Date.now() - startTime,
-          timestamp: new Date()
-        };
-      } else {
-        console.log(`❌ ارز ${currencyName} در لیست پیدا نشد`);
-        return {
-          success: false,
-          site: this.name,
-          error: 'ارز در لیست پیدا نشد',
-          results: [],
-          currencyName: currencyName,
-          searchDuration: Date.now() - startTime,
-          timestamp: new Date()
-        };
-      }
-
-    } catch (error) {
-      console.error(`❌ خطا در جستجو در لیست: ${error.message}`);
-      return {
-        success: false,
-        site: this.name,
-        error: error.message,
-        results: [],
-        currencyName: currencyName,
-        searchDuration: Date.now() - startTime,
         timestamp: new Date()
       };
     }
