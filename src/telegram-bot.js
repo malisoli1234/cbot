@@ -71,7 +71,21 @@ const queue = async.queue(async (task, callback) => {
     logger.info(`📤 پاسخ API: ${JSON.stringify(response.data)}`);
 
     // پیدا کردن نتیجه منطبق
-    const matchedResult = results.find(result => result.currency === currencyName);
+    const matchedResult = results.find(result => {
+      // تطبیق دقیق
+      if (result.currency === currencyName) return true;
+      
+      // تطبیق با تغییرات OTCp -> OTC
+      const normalizedCurrency = currencyName.replace('-OTCp', '-OTC');
+      if (result.currency === normalizedCurrency) return true;
+      
+      // تطبیق با تغییرات OTC -> OTCp
+      const normalizedResult = result.currency.replace('-OTC', '-OTCp');
+      if (normalizedResult === currencyName) return true;
+      
+      return false;
+    });
+    
     if (status === 'success' && matchedResult) {
       const payout = matchedResult.payout;
       
@@ -79,7 +93,9 @@ const queue = async.queue(async (task, callback) => {
       if (payout === 'N/A') {
         logger.info(`🚫 پیام حذف شد: ${currencyName} به دلیل payout=N/A`);
         await deleteMessage(messageId);
-        await updateCurrencyStatus(searchId, 'deleted');
+        if (searchId !== 'temp-id') {
+          await updateCurrencyStatus(searchId, 'deleted');
+        }
         callback();
         return;
       }
@@ -88,7 +104,9 @@ const queue = async.queue(async (task, callback) => {
       if (isNaN(payoutNum) || payoutNum < MIN_PAYOUT) {
         logger.info(`🚫 پیام حذف شد: ${currencyName} به دلیل payout=${payout} کمتر از ${MIN_PAYOUT}`);
         await deleteMessage(messageId);
-        await updateCurrencyStatus(searchId, 'deleted');
+        if (searchId !== 'temp-id') {
+          await updateCurrencyStatus(searchId, 'deleted');
+        }
         callback();
         return;
       }
@@ -102,14 +120,18 @@ const queue = async.queue(async (task, callback) => {
           parse_mode: 'Markdown',
         });
         logger.info(`✏️ پیام ویرایش شد در کانال: ${reply}`);
-        await updateCurrencyStatus(searchId, 'edited');
+        if (searchId !== 'temp-id') {
+          await updateCurrencyStatus(searchId, 'edited');
+        }
       } catch (e) {
         logger.error(`❌ خطا در ویرایش پیام ${messageText}: ${e.message}`);
       }
     } else {
       logger.info(`🚫 پیام حذف شد: ${currencyName} پیدا نشد`);
       await deleteMessage(messageId);
-      await updateCurrencyStatus(searchId, 'deleted');
+      if (searchId !== 'temp-id') {
+        await updateCurrencyStatus(searchId, 'deleted');
+      }
       callback();
       return;
     }
@@ -249,4 +271,4 @@ async function startBot() {
   }
 }
 
-startBot(); 
+startBot();
