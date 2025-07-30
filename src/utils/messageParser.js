@@ -13,6 +13,9 @@ class MessageParser {
       OL: /^OL:\s*([A-Z]+-OTC[p]?)\s+(\d+min)\s+(BUY|SELL)\s+(\w+)/i,
       ORG: /^ORG:\s*([A-Z]+-OTC[p]?)\s+(\d+min)\s+(BUY|SELL)\s+(\w+)/i,
       
+      // پیام‌های ساده بدون prefix
+      SIMPLE_FORMAT: /^([A-Z]+-OTC[p]?)\s+(\d+min)\s+(BUY|SELL)\s+(\w+)/i,
+      
       // پیام‌های ساده
       SIMPLE: /^([A-Z]+-OTC[p]?|[A-Z]+)/,
       
@@ -26,6 +29,7 @@ class MessageParser {
       QU: ['pfinance'], // پیام‌های QU فقط در P.Finance
       OL: ['pfinance'], // پیام‌های OL فقط در P.Finance
       ORG: ['pfinance', 'example'], // پیام‌های ORG در همه سایت‌ها
+      SIMPLE_FORMAT: ['pfinance'], // پیام‌های ساده بدون prefix در P.Finance
       SIMPLE: ['pfinance'], // پیام‌های ساده در P.Finance
       DEFAULT: ['pfinance'] // پیش‌فرض
     };
@@ -91,6 +95,14 @@ class MessageParser {
         direction = match[3];
         network = match[4];
         sites = this.siteMapping.ORG; // در همه سایت‌ها
+        break;
+
+      case 'SIMPLE_FORMAT':
+        currencyName = match[1];
+        timeFrame = match[2];
+        direction = match[3];
+        network = match[4];
+        sites = this.siteMapping.SIMPLE_FORMAT;
         break;
 
       case 'FORMATTED':
