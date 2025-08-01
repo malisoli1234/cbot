@@ -116,25 +116,35 @@ async function setupBrowser() {
     
     // مرحله 6: کلیک روی دکمه Halal Market Axis
     logger.info('🔍 در حال پیدا کردن دکمه Halal Market Axis...');
-    await page.waitForSelector('[data-test="asset-select-button-HMA_X/ftt"], [data-test="assets-tabs-tab-selected"]', { timeout: 15000 });
+    
+    // صبر بیشتر برای لود کامل صفحه
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    logger.info('⏳ صبر اضافی برای لود کامل صفحه...');
     
     // تلاش با selector های مختلف
     const selectors = [
       '[data-test="asset-select-button-HMA_X/ftt"]',
       '[data-test="assets-tabs-tab-selected"]',
       '.css-e5732h.e1r2g46w0',
-      'div[role="button"][data-test="assets-tabs-tab-selected"]'
+      'div[role="button"][data-test="assets-tabs-tab-selected"]',
+      '[data-test="pair-name-HMA_X"]',
+      'img[data-test="pair-name-HMA_X"]',
+      'div[data-asset-tab="true"]',
+      '.css-1gbgf2c.e1su41ew0'
     ];
     
     let clicked = false;
     for (const selector of selectors) {
       try {
+        logger.info(`🔍 تلاش با selector: ${selector}`);
         const element = await page.$(selector);
         if (element) {
           await element.click();
           logger.info(`✅ دکمه Halal Market Axis کلیک شد با selector: ${selector}`);
           clicked = true;
           break;
+        } else {
+          logger.warn(`⚠️ Element با selector ${selector} پیدا نشد`);
         }
       } catch (e) {
         logger.warn(`⚠️ تلاش با selector ${selector} ناموفق: ${e.message}`);
@@ -142,6 +152,56 @@ async function setupBrowser() {
     }
     
     if (!clicked) {
+      // تلاش با JavaScript
+      try {
+        logger.info('🔍 تلاش با JavaScript...');
+        await page.evaluate(() => {
+          const elements = document.querySelectorAll('[data-test*="HMA_X"], [data-test*="assets-tabs"], [data-test*="asset-select"]');
+          for (const element of elements) {
+            if (element.clickable) {
+              element.click();
+              return true;
+            }
+          }
+          return false;
+        });
+        logger.info('✅ دکمه Halal Market Axis کلیک شد با JavaScript');
+        clicked = true;
+      } catch (e) {
+        logger.warn(`⚠️ تلاش با JavaScript ناموفق: ${e.message}`);
+      }
+    }
+    
+    if (!clicked) {
+      // تلاش با کلیک روی هر دکمه‌ای که پیدا بشه
+      try {
+        logger.info('🔍 تلاش با کلیک روی هر دکمه موجود...');
+        const buttons = await page.$$('div[role="button"], button, [data-test*="button"]');
+        for (const button of buttons) {
+          try {
+            await button.click();
+            logger.info('✅ دکمه کلیک شد');
+            clicked = true;
+            break;
+          } catch (e) {
+            // ادامه
+          }
+        }
+      } catch (e) {
+        logger.warn(`⚠️ تلاش با کلیک عمومی ناموفق: ${e.message}`);
+      }
+    }
+    
+    if (!clicked) {
+      // اسکرین‌شات برای دیباگ
+      try {
+        await page.screenshot({ path: 'debug-page.png', fullPage: true });
+        logger.info('📸 اسکرین‌شات ذخیره شد: debug-page.png');
+      } catch (e) {
+        logger.warn('⚠️ خطا در اسکرین‌شات');
+      }
+      
+      logger.error('❌ هیچ دکمه‌ای پیدا نشد');
       throw new Error('دکمه Halal Market Axis پیدا نشد');
     }
     
