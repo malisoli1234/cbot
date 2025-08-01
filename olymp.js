@@ -9,6 +9,34 @@ app.use(express.json());
 puppeteerExtra.use(StealthPlugin());
 puppeteerExtra.use(RecaptchaPlugin());
 
+// تابع تغییر IP (اختیاری)
+async function changeIP() {
+  try {
+    logger.info('🌐 در حال تغییر IP...');
+    
+    // روش 1: استفاده از VPN (اگر VPN دارید)
+    // await page.evaluate(() => {
+    //   // تغییر IP با VPN
+    // });
+    
+    // روش 2: استفاده از پروکسی
+    // await page.authenticate({
+    //   username: 'proxy_user',
+    //   password: 'proxy_pass'
+    // });
+    
+    // روش 3: تغییر User-Agent
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36');
+    
+    // روش 4: تغییر Viewport
+    await page.setViewport({ width: 1366, height: 768 });
+    
+    logger.info('✅ IP تغییر کرد');
+  } catch (e) {
+    logger.warn(`⚠️ خطا در تغییر IP: ${e.message}`);
+  }
+}
+
 // تنظیم لاگ‌گیری
 const logger = {
   info: (msg) => console.log(`${new Date().toISOString()} - INFO - ${msg}`),
@@ -36,8 +64,12 @@ async function setupBrowser() {
         '--disable-blink-features=AutomationControlled',
         '--disable-features=VizDisplayCompositor',
         '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        // پروکسی (اختیاری - اگر پروکسی دارید)
-        // '--proxy-server=http://your-proxy:port',
+        // پروکسی‌های رایگان (اختیاری)
+        // '--proxy-server=socks5://127.0.0.1:1080',
+        // '--proxy-server=http://proxy.example.com:8080',
+        // '--proxy-server=socks4://proxy.example.com:1080',
+        // VPN (اگر VPN دارید)
+        // '--proxy-server=socks5://127.0.0.1:1080',
       ],
     });
     page = await browser.newPage();
@@ -232,6 +264,9 @@ async function solveCaptcha() {
         get: () => undefined,
       });
     });
+    
+    // تغییر IP برای دور زدن کپچا
+    await changeIP();
     
     // استفاده از puppeteer-extra-plugin-recaptcha
     const recaptchaExists = await page.$('iframe[src*="recaptcha"], .g-recaptcha');
