@@ -152,8 +152,35 @@ async function setupBrowser() {
     
     // مرحله 2: رفتن به صفحه اولیمپ ترید
     logger.info('🌐 در حال رفتن به صفحه اولیمپ ترید...');
-    await page.goto('https://olymptrade.com/platform', { waitUntil: 'domcontentloaded', timeout: 30000 });
-    logger.info('✅ صفحه اولیمپ ترید لود شد');
+    
+    // تلاش چندین بار برای لود صفحه
+    let pageLoaded = false;
+    let attempts = 0;
+    const maxAttempts = 3;
+    
+    while (!pageLoaded && attempts < maxAttempts) {
+      attempts++;
+      try {
+        logger.info(`🔄 تلاش ${attempts}/${maxAttempts} برای لود صفحه...`);
+        await page.goto('https://olymptrade.com/platform', { 
+          waitUntil: 'domcontentloaded', 
+          timeout: 60000 // افزایش timeout به 60 ثانیه
+        });
+        logger.info('✅ صفحه اولیمپ ترید لود شد');
+        pageLoaded = true;
+      } catch (e) {
+        logger.warn(`⚠️ تلاش ${attempts} ناموفق: ${e.message}`);
+        if (attempts < maxAttempts) {
+          logger.info('🔄 تغییر پروکسی و تلاش مجدد...');
+          await changeIP();
+          await new Promise(resolve => setTimeout(resolve, 5000)); // صبر 5 ثانیه
+        }
+      }
+    }
+    
+    if (!pageLoaded) {
+      throw new Error(`صفحه بعد از ${maxAttempts} تلاش لود نشد`);
+    }
     
     // صبر کردن برای لود کامل صفحه
     await new Promise(resolve => setTimeout(resolve, 3000));
@@ -161,7 +188,7 @@ async function setupBrowser() {
     
     // مرحله 3: کلیک روی دکمه Login
     logger.info('🔍 در حال پیدا کردن دکمه Login...');
-    await page.waitForSelector('button[data-test="auth-tab-item"]', { timeout: 15000 });
+    await page.waitForSelector('button[data-test="auth-tab-item"]', { timeout: 30000 });
     await page.click('button[data-test="auth-tab-item"]');
     logger.info('✅ دکمه Login کلیک شد');
     
@@ -171,13 +198,13 @@ async function setupBrowser() {
     
     // مرحله 4: وارد کردن یوزرنیم
     logger.info('📝 در حال وارد کردن یوزرنیم...');
-    await page.waitForSelector('input[data-test="Input"][name="email"]', { timeout: 15000 });
+    await page.waitForSelector('input[data-test="Input"][name="email"]', { timeout: 30000 });
     await page.type('input[data-test="Input"][name="email"]', 'mmrrssoollii@gmail10p.com');
     logger.info('✅ یوزرنیم وارد شد');
     
     // مرحله 5: وارد کردن پسورد
     logger.info('🔐 در حال وارد کردن پسورد...');
-    await page.waitForSelector('input[data-test="Input"][name="password"]', { timeout: 15000 });
+    await page.waitForSelector('input[data-test="Input"][name="password"]', { timeout: 30000 });
     await page.type('input[data-test="Input"][name="password"]', 'mmm123456789');
     logger.info('✅ پسورد وارد شد');
     
@@ -186,7 +213,7 @@ async function setupBrowser() {
     
     // مرحله 6: کلیک روی دکمه Log In
     logger.info('🔍 در حال پیدا کردن دکمه Log In...');
-    await page.waitForSelector('button[data-test="form-signin-button"]', { timeout: 15000 });
+    await page.waitForSelector('button[data-test="form-signin-button"]', { timeout: 30000 });
     await page.click('button[data-test="form-signin-button"]');
     logger.info('✅ دکمه Log In کلیک شد');
     
