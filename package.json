@@ -7,7 +7,7 @@
     "start": "node telegram-bot.js",
     "pfinance": "node pfinance.js",
     "olymp": "node olymp.js",
-    "olymp-no-proxy": "USE_PROXY=false node olymp.js",
+    "olymp-no-proxy": "cross-env USE_PROXY=false node olymp.js",
     "dev": "nodemon telegram-bot.js"
   },
   "dependencies": {
@@ -20,6 +20,7 @@
     "puppeteer-extra-plugin-stealth": "^2.11.2"
   },
   "devDependencies": {
+    "cross-env": "^10.0.0",
     "nodemon": "^3.0.0"
   },
   "keywords": [
