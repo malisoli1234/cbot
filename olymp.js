@@ -9,7 +9,8 @@ app.use(express.json());
 puppeteerExtra.use(StealthPlugin());
 puppeteerExtra.use(RecaptchaPlugin());
 
-// لیست پروکسی‌های واقعی از spys.one
+// تنظیمات پروکسی
+const USE_PROXY = process.env.USE_PROXY !== 'false'; // می‌تونید با USE_PROXY=false اجرا کنید
 const proxyList = [
   // پروکسی‌های HTTP از UAE
   'http://83.111.75.116:8080',
@@ -52,6 +53,11 @@ let currentProxyIndex = 0;
 async function changeIP() {
   try {
     logger.info('🌐 در حال تغییر IP...');
+    
+    if (!USE_PROXY) {
+      logger.info('⚠️ پروکسی غیرفعال است، بدون پروکسی ادامه می‌دهیم...');
+      return;
+    }
     
     if (proxyList.length > 0) {
       // انتخاب پروکسی بعدی
@@ -145,10 +151,14 @@ async function setupBrowser() {
     });
     await page.setViewport({ width: 1280, height: 720 });
     
-    // مرحله 1: تغییر پروکسی قبل از شروع
+    // مرحله 1: تغییر پروکسی قبل از شروع (اختیاری)
     logger.info('🔄 در حال تغییر پروکسی...');
-    await changeIP();
-    logger.info('✅ پروکسی تغییر کرد');
+    try {
+      await changeIP();
+      logger.info('✅ پروکسی تغییر کرد');
+    } catch (e) {
+      logger.warn('⚠️ خطا در تغییر پروکسی، بدون پروکسی ادامه می‌دهیم...');
+    }
     
     // مرحله 2: رفتن به صفحه اولیمپ ترید
     logger.info('🌐 در حال رفتن به صفحه اولیمپ ترید...');
@@ -172,7 +182,11 @@ async function setupBrowser() {
         logger.warn(`⚠️ تلاش ${attempts} ناموفق: ${e.message}`);
         if (attempts < maxAttempts) {
           logger.info('🔄 تغییر پروکسی و تلاش مجدد...');
-          await changeIP();
+          try {
+            await changeIP();
+          } catch (e) {
+            logger.warn('⚠️ خطا در تغییر پروکسی، بدون پروکسی تلاش می‌کنیم...');
+          }
           await new Promise(resolve => setTimeout(resolve, 5000)); // صبر 5 ثانیه
         }
       }

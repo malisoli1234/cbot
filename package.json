@@ -7,6 +7,7 @@
     "start": "node telegram-bot.js",
     "pfinance": "node pfinance.js",
     "olymp": "node olymp.js",
+    "olymp-no-proxy": "USE_PROXY=false node olymp.js",
     "dev": "nodemon telegram-bot.js"
   },
   "dependencies": {
