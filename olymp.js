@@ -552,6 +552,32 @@ app.post('/api/search-currency', async (req, res) => {
   res.json(result);
 });
 
+// تست endpoint
+app.post('/api/test', async (req, res) => {
+  logger.info('🧪 تست API endpoint');
+  res.json({ 
+    status: 'success', 
+    message: 'API is working!', 
+    timestamp: new Date().toISOString(),
+    data: {
+      test: 'This is a test response',
+      server: 'Olymp Trade API',
+      version: '1.0.0'
+    }
+  });
+});
+
+// تست endpoint با GET
+app.get('/api/test', async (req, res) => {
+  logger.info('🧪 تست GET API endpoint');
+  res.json({ 
+    status: 'success', 
+    message: 'GET API is working!', 
+    timestamp: new Date().toISOString(),
+    method: 'GET'
+  });
+});
+
 async function main() {
   if (!(await setupBrowser())) {
     logger.error('❌ راه‌اندازی مرورگر ناموفق بود. برنامه متوقف می‌شود.');
