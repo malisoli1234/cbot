@@ -3,13 +3,11 @@
  */
 
 const PFinanceSite = require('./PFinanceSite');
-const ExampleSite = require('./ExampleSite');
 const OlympTradeSite = require('./OlympTradeSite');
 
 // لیست تمام سایت‌های موجود
 const availableSites = {
   pfinance: PFinanceSite,
-  example: ExampleSite,
   olymp: OlympTradeSite
 };
 
@@ -45,7 +43,6 @@ function hasSite(siteName) {
 
 module.exports = {
   PFinanceSite,
-  ExampleSite,
   OlympTradeSite,
   availableSites,
   createSite,

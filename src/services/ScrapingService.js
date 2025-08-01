@@ -3,7 +3,7 @@ const CurrencyParser = require('../utils/currencyParser');
 const MessageParser = require('../utils/messageParser');
 
 // Import site modules
-const { PFinanceSite, ExampleSite, OlympTradeSite } = require('./sites');
+const { PFinanceSite, OlympTradeSite } = require('./sites');
 
 class ScrapingService {
   constructor() {
@@ -15,7 +15,6 @@ class ScrapingService {
     this.sites = {
       pfinance: new PFinanceSite(),
       olymp: new OlympTradeSite(),
-      // example: new ExampleSite(), // برای فعال کردن، این خط رو uncomment کنید
     };
   }
 
@@ -27,10 +26,28 @@ class ScrapingService {
         // ایجاد صفحه برای استفاده مشترک
         await this.browserManager.createPage();
         
-        // راه‌اندازی سایت‌های فعال
-        for (const site of Object.values(this.sites)) {
-          await this.setupSite(site);
+        // راه‌اندازی سایت‌ها دونه دونه
+        console.log('🚀 راه‌اندازی سایت‌ها...');
+        
+        // اول P.Finance
+        try {
+          console.log('📊 راه‌اندازی P.Finance...');
+          await this.setupSite(this.sites.pfinance);
+          console.log('✅ P.Finance راه‌اندازی شد');
+        } catch (error) {
+          console.error(`❌ خطا در راه‌اندازی P.Finance: ${error.message}`);
         }
+        
+        // بعد Olymp Trade
+        try {
+          console.log('🏆 راه‌اندازی Olymp Trade...');
+          await this.setupSite(this.sites.olymp);
+          console.log('✅ Olymp Trade راه‌اندازی شد');
+        } catch (error) {
+          console.error(`❌ خطا در راه‌اندازی Olymp Trade: ${error.message}`);
+        }
+        
+        console.log('✅ همه سایت‌ها راه‌اندازی شدند');
       }
     }
     return this.initialized;

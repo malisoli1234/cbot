@@ -48,49 +48,14 @@ class BrowserManager {
       console.log('راه‌اندازی مرورگر...');
       
       const chromePath = this.findChromePath();
-                        const launchOptions = {
-                    headless: 'new',
-                    args: [
-                      '--no-sandbox',
-                      '--disable-dev-shm-usage',
-                      '--enable-webgl',
-                      '--ignore-gpu-blacklist',
-                      '--disable-gpu-driver-bug-workarounds',
-                      '--disable-accelerated-2d-canvas',
-                      '--blink-settings=imagesEnabled=false',
-                      '--disable-extensions',
-                      '--disable-logging',
-                      '--disable-default-apps',
-                      '--disable-background-timer-throttling',
-                      '--disable-backgrounding-occluded-windows',
-                      '--disable-renderer-backgrounding',
-                      '--disable-features=TranslateUI',
-                      '--disable-ipc-flooding-protection',
-                      '--log-level=3',
-                      '--silent-launch',
-                      '--disable-web-security',
-                      '--disable-features=VizDisplayCompositor',
-                      '--disable-dev-shm-usage',
-                      '--disable-setuid-sandbox',
-                      '--no-first-run',
-                      '--no-default-browser-check',
-                      '--disable-background-networking',
-                      '--disable-sync',
-                      '--disable-translate',
-                      '--hide-scrollbars',
-                      '--mute-audio',
-                      '--no-zygote',
-                      '--disable-background-timer-throttling',
-                      '--disable-renderer-backgrounding',
-                      '--disable-backgrounding-occluded-windows',
-                      '--disable-ipc-flooding-protection',
-                      '--disable-features=TranslateUI',
-                      '--disable-logging',
-                      '--log-level=3',
-                      '--silent-launch',
-                      '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
-                    ],
-                  };
+      const launchOptions = {
+        headless: false, // نمایش مرورگر برای تست
+        args: [
+          '--no-sandbox',
+          '--disable-gpu',
+          '--disable-dev-shm-usage'
+        ],
+      };
 
       // اگر Chrome پیدا شد، از اون استفاده کن
       if (chromePath) {
@@ -108,30 +73,6 @@ class BrowserManager {
       return true;
     } catch (error) {
       console.error(`❌ خطا در راه‌اندازی مرورگر: ${error.message}`);
-      
-      // اگر Chrome پیدا نشد، سعی کن بدون headless اجرا کن
-      if (error.message.includes('Could not find Chrome') || error.message.includes('Timed out')) {
-        console.log('🔄 تلاش برای راه‌اندازی بدون headless...');
-        try {
-                                this.browser = await puppeteer.launch({
-                        headless: false,
-                        args: [
-                          '--no-sandbox',
-                          '--disable-gpu',
-                          '--disable-dev-shm-usage',
-                          '--disable-logging',
-                          '--log-level=3',
-                          '--silent-launch',
-                        ],
-                      });
-          console.log('✅ مرورگر بدون headless راه‌اندازی شد');
-          return true;
-        } catch (retryError) {
-          console.error(`❌ خطا در راه‌اندازی بدون headless: ${retryError.message}`);
-          return false;
-        }
-      }
-      
       return false;
     }
   }

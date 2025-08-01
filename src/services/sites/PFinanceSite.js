@@ -99,7 +99,12 @@ class PFinanceSite extends BaseSite {
             }
             // حذف علامت + و % از payout
             payout = payout.replace('+', '').replace('%', '');
-            results.push({ currency: label, payout });
+            results.push({
+              currency: label,
+              payout: payout,
+              originalLabel: link?.querySelector('.alist__label')?.textContent || 'N/A',
+              originalPayout: link?.querySelector('.alist__payout')?.textContent || 'N/A'
+            });
           } catch (e) {
             console.error(`❌ خطا در استخراج آیتم: ${e.message}`);
           }
@@ -111,33 +116,27 @@ class PFinanceSite extends BaseSite {
       if (results.length === 0) {
         console.log(`❌ ارز ${currencyName} پیدا نشد. (زمان: ${duration}ms)`);
         return {
-          success: false,
-          site: this.name,
-          results: [],
-          currencyName: currencyName,
-          timestamp: new Date()
+          status: 'success',
+          message: `Currency ${currencyName} not found`,
+          results: []
         };
       }
 
       console.log(`✅ ارز ${currencyName} جستجو شد. نتایج: ${JSON.stringify(results)} (زمان: ${duration}ms)`);
       return {
-        success: true,
-        site: this.name,
-        results: results,
-        currencyName: currencyName,
-        timestamp: new Date()
+        status: 'success',
+        message: `Currency ${currencyName} searched`,
+        results
       };
-
-    } catch (error) {
+    } catch (e) {
       const duration = Date.now() - startTime;
-      console.error(`❌ خطا در جستجوی ارز ${currencyName}: ${error.message} (زمان: ${duration}ms)`);
+      console.error(`❌ خطا در جستجوی ارز ${currencyName}: ${e.message} (زمان: ${duration}ms)`);
+      const html = await page.content();
+      console.error(`📜 HTML صفحه: ${html.slice(0, 3000)}`);
       return {
-        success: false,
-        site: this.name,
-        error: error.message,
-        results: [],
-        currencyName: currencyName,
-        timestamp: new Date()
+        status: 'error',
+        message: `Search failed: ${e.message}`,
+        results: []
       };
     }
   }

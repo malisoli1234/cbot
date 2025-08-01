@@ -10,11 +10,6 @@ class SearchController {
   async initialize() {
     if (!this.initialized) {
       this.initialized = await this.scrapingService.initialize();
-      
-      // راه‌اندازی سایت‌های فعال
-      for (const site of Object.values(this.scrapingService.sites)) {
-        await this.scrapingService.setupSite(site);
-      }
     }
     return this.initialized;
   }
