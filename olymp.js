@@ -453,96 +453,21 @@ async function searchCurrency(currencyName) {
   try {
     logger.info(`🔍 در حال جستجوی ارز: ${currencyName}`);
     
-    // مرحله 1: پیدا کردن input search با selector های مختلف
-    logger.info('🔍 در حال پیدا کردن input search...');
+    // صبر برای آماده شدن input search
+    await page.waitForSelector('input[data-test="Input"][name="asset-search-field"]', { timeout: 5000 });
     
-    const searchSelectors = [
-      'input[data-test="Input"][name="asset-search-field"]',
-      'input[name="asset-search-field"]',
-      'input[data-test="Input"]',
-      'input[placeholder="Search"]',
-      '.eyxVtLklPL._0-iVLEdBew._1ZFlsEbrKt',
-      'input[autocomplete="off"]',
-      'input[type="text"]',
-      'input[placeholder*="Search"]',
-      'input[placeholder*="search"]',
-      'input[placeholder*="جستجو"]',
-      '.search__field',
-      'input.search__field',
-      'input[class*="search"]',
-      'input[class*="Search"]',
-      'input[data-test*="search"]',
-      'input[data-test*="Search"]',
-      'input[name*="search"]',
-      'input[name*="Search"]'
-    ];
-    
-    let searchInput = null;
-    for (const selector of searchSelectors) {
-      try {
-        logger.info(`🔍 تلاش برای input search با selector: ${selector}`);
-        searchInput = await page.$(selector);
-        if (searchInput) {
-          logger.info(`✅ input search پیدا شد با selector: ${selector}`);
-          break;
-        }
-      } catch (e) {
-        logger.warn(`⚠️ selector ${selector} ناموفق: ${e.message}`);
-      }
-    }
-    
-    if (!searchInput) {
-      logger.error('❌ input search پیدا نشد');
-      
-      // Debug: گرفتن تمام input ها
-      const allInputs = await page.evaluate(() => {
-        const inputs = document.querySelectorAll('input');
-        return Array.from(inputs).map(input => ({
-          tagName: input.tagName,
-          type: input.type,
-          name: input.name,
-          placeholder: input.placeholder,
-          className: input.className,
-          id: input.id,
-          'data-test': input.getAttribute('data-test'),
-          'data-name': input.getAttribute('data-name')
-        }));
-      });
-      
-      logger.error(`🔍 تمام input های موجود: ${JSON.stringify(allInputs, null, 2)}`);
-      
-      return { 
-        status: 'error', 
-        message: 'Search input not found', 
-        results: [],
-        debug: {
-          allInputs: allInputs,
-          pageTitle: await page.title(),
-          url: page.url()
-        }
-      };
-    }
-    
-    // مرحله 2: پاک کردن فیلد search و وارد کردن نام ارز
-    logger.info('📝 در حال وارد کردن نام ارز در فیلد search...');
-    
-    // کلیک روی input و پاک کردن محتوا
-    await searchInput.click();
-    await page.evaluate(() => {
-      const input = document.querySelector('input[data-test="Input"][name="asset-search-field"], input[name="asset-search-field"], input[placeholder="Search"]');
-      if (input) input.value = '';
-    });
-    
-    // تایپ کردن نام ارز
-    await page.type('input[data-test="Input"][name="asset-search-field"], input[name="asset-search-field"], input[placeholder="Search"]', currencyName);
+    // پاک کردن فیلد search و وارد کردن نام ارز
+    await page.evaluate(() => document.querySelector('input[data-test="Input"][name="asset-search-field"]').value = '');
+    await page.type('input[data-test="Input"][name="asset-search-field"]', currencyName);
     logger.info('✅ نام ارز وارد شد');
-    
-    // مرحله 3: صبر برای نتایج جستجو
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    logger.info('⏳ صبر برای نتایج جستجو...');
-    
-    // مرحله 4: استخراج نتایج جستجو
-    logger.info('📊 در حال استخراج نتایج جستجو...');
+
+    // صبر تا وقتی حداقل یه آیتم لود بشه یا تایم‌اوت
+    await page.waitForFunction(
+      () => document.querySelector('[data-test="asset-item"]') !== null,
+      { timeout: 5000 }
+    );
+
+    // استخراج و فرمت نتایج
     const results = await page.evaluate(() => {
       const items = document.querySelectorAll('[data-test="asset-item"]');
       const results = [];
@@ -550,22 +475,13 @@ async function searchCurrency(currencyName) {
       items.forEach(item => {
         try {
           const ticker = item.getAttribute('data-ticker');
-          const icon = item.querySelector('img[data-test^="asset-item-icon-"]')?.src;
-          
-          // پیدا کردن درصد payout از data-test="asset-item-value"
           const payoutElement = item.querySelector('[data-test="asset-item-value"]');
           const payout = payoutElement ? payoutElement.textContent.trim() : 'N/A';
           
-          // پیدا کردن عنوان ارز
-          const titleElement = item.querySelector('[data-test^="asset-item-title-"]');
-          const title = titleElement ? titleElement.textContent.trim() : ticker;
-          
           if (ticker) {
-            results.push({
-              currency: ticker,
-              title: title,
-              payout: payout,
-              icon: icon
+            results.push({ 
+              currency: ticker, 
+              payout: payout 
             });
           }
         } catch (e) {
@@ -575,8 +491,13 @@ async function searchCurrency(currencyName) {
       
       return results;
     });
-    
+
     const duration = Date.now() - startTime;
+    if (results.length === 0) {
+      logger.info(`❌ ارز ${currencyName} پیدا نشد. (زمان: ${duration}ms)`);
+      return { status: 'success', message: `Currency ${currencyName} not found`, results: [] };
+    }
+
     logger.info(`✅ ارز ${currencyName} جستجو شد. نتایج: ${JSON.stringify(results)} (زمان: ${duration}ms)`);
     return { status: 'success', message: `Currency ${currencyName} searched`, results };
   } catch (e) {
