@@ -421,9 +421,79 @@ async function setupBrowser() {
     
     // مرحله 3: کلیک روی دکمه Login
     logger.info('🔍 در حال پیدا کردن دکمه Login...');
-    await page.waitForSelector('button[data-test="auth-tab-item"]', { timeout: 30000 });
-    await page.click('button[data-test="auth-tab-item"]');
-    logger.info('✅ دکمه Login کلیک شد');
+    
+    // تلاش با selector های مختلف برای دکمه Login
+    const loginSelectors = [
+      'button[data-test="auth-tab-item"]',
+      'button[data-test="login-tab"]',
+      'button[data-test="signin-tab"]',
+      'button[data-test="auth-button"]',
+      'button[data-test="login-button"]',
+      'button[data-test="signin-button"]',
+      'a[data-test="auth-tab-item"]',
+      'a[data-test="login-tab"]',
+      'div[data-test="auth-tab-item"]',
+      'div[data-test="login-tab"]',
+      '[data-test="auth-tab-item"]',
+      '[data-test="login-tab"]',
+      'button:contains("Login")',
+      'button:contains("Sign In")',
+      'a:contains("Login")',
+      'a:contains("Sign In")',
+      'div:contains("Login")',
+      'div:contains("Sign In")'
+    ];
+    
+    let loginClicked = false;
+    for (const selector of loginSelectors) {
+      try {
+        logger.info(`🔍 تلاش برای دکمه Login با selector: ${selector}`);
+        const element = await page.$(selector);
+        if (element) {
+          await element.click();
+          logger.info(`✅ دکمه Login کلیک شد با selector: ${selector}`);
+          loginClicked = true;
+          break;
+        }
+      } catch (e) {
+        logger.warn(`⚠️ selector ${selector} ناموفق: ${e.message}`);
+      }
+    }
+    
+    if (!loginClicked) {
+      // تلاش با JavaScript
+      try {
+        logger.info('🔍 تلاش با JavaScript برای دکمه Login...');
+        await page.evaluate(() => {
+          const buttons = document.querySelectorAll('button, a, div');
+          for (const button of buttons) {
+            const text = button.textContent.toLowerCase();
+            if (text.includes('login') || text.includes('sign in') || text.includes('signin')) {
+              button.click();
+              return true;
+            }
+          }
+          return false;
+        });
+        logger.info('✅ دکمه Login کلیک شد با JavaScript');
+        loginClicked = true;
+      } catch (e) {
+        logger.warn(`⚠️ تلاش با JavaScript ناموفق: ${e.message}`);
+      }
+    }
+    
+    if (!loginClicked) {
+      // اسکرین‌شات برای دیباگ
+      try {
+        await page.screenshot({ path: 'debug-login.png', fullPage: true });
+        logger.info('📸 اسکرین‌شات ذخیره شد: debug-login.png');
+      } catch (e) {
+        logger.warn('⚠️ خطا در اسکرین‌شات');
+      }
+      
+      logger.error('❌ دکمه Login پیدا نشد');
+      throw new Error('دکمه Login پیدا نشد');
+    }
     
     // صبر برای لود فرم لاگین
     await new Promise(resolve => setTimeout(resolve, 2000));
