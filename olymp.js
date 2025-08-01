@@ -98,8 +98,6 @@ let page = null;
 async function setupBrowser() {
   try {
     logger.info('راه‌اندازی مرورگر...');
-    // انتخاب پروکسی اولیه
-    const initialProxy = proxyList.length > 0 ? proxyList[0] : null;
     
     browser = await puppeteerExtra.launch({
       headless: 'new',
@@ -115,8 +113,6 @@ async function setupBrowser() {
         '--disable-blink-features=AutomationControlled',
         '--disable-features=VizDisplayCompositor',
         // '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        // پروکسی (اگر تعریف شده باشد)
-        ...(initialProxy ? [`--proxy-server=${initialProxy}`] : []),
       ],
     });
     page = await browser.newPage();
