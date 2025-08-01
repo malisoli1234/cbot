@@ -49,10 +49,10 @@ const proxyList = [
 
 let currentProxyIndex = 0;
 
-// تابع تغییر IP با پروکسی
+// تابع تغییر پروکسی (بدون تغییر یوزر ایجنت)
 async function changeIP() {
   try {
-    logger.info('🌐 در حال تغییر IP...');
+    logger.info('🌐 در حال تغییر پروکسی...');
     
     if (!USE_PROXY) {
       logger.info('⚠️ پروکسی غیرفعال است، بدون پروکسی ادامه می‌دهیم...');
@@ -75,34 +75,12 @@ async function changeIP() {
         };
       });
       
-      // تغییر User-Agent - غیرفعال
-      // const userAgents = [
-      //   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-      //   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      //   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
-      //   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-      // ];
-      
-      // const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
-      // await page.setUserAgent(randomUserAgent);
-      
-      // تغییر Viewport - غیرفعال
-      // const viewports = [
-      //   { width: 1366, height: 768 },
-      //   { width: 1920, height: 1080 },
-      //   { width: 1280, height: 720 },
-      //   { width: 1440, height: 900 },
-      // ];
-      
-      // const randomViewport = viewports[Math.floor(Math.random() * viewports.length)];
-      // await page.setViewport(randomViewport);
-      
-      logger.info(`✅ IP تغییر کرد - پروکسی: ${proxy}`);
+      logger.info(`✅ پروکسی تغییر کرد: ${proxy}`);
     } else {
       logger.warn('⚠️ هیچ پروکسی‌ای تعریف نشده');
     }
   } catch (e) {
-    logger.warn(`⚠️ خطا در تغییر IP: ${e.message}`);
+    logger.warn(`⚠️ خطا در تغییر پروکسی: ${e.message}`);
   }
 }
 
