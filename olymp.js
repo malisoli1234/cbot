@@ -437,18 +437,54 @@ async function searchCurrency(currencyName) {
   try {
     logger.info(`🔍 در حال جستجوی ارز: ${currencyName}`);
     
-    // مرحله 1: پیدا کردن input search
+    // مرحله 1: پیدا کردن input search با selector های مختلف
     logger.info('🔍 در حال پیدا کردن input search...');
-    await page.waitForSelector('input[data-test="Input"][name="asset-search-field"]', { timeout: 15000 });
+    
+    const searchSelectors = [
+      'input[data-test="Input"][name="asset-search-field"]',
+      'input[name="asset-search-field"]',
+      'input[data-test="Input"]',
+      'input[placeholder="Search"]',
+      '.eyxVtLklPL._0-iVLEdBew._1ZFlsEbrKt',
+      'input[autocomplete="off"]',
+      'input[type="text"]'
+    ];
+    
+    let searchInput = null;
+    for (const selector of searchSelectors) {
+      try {
+        logger.info(`🔍 تلاش برای input search با selector: ${selector}`);
+        searchInput = await page.$(selector);
+        if (searchInput) {
+          logger.info(`✅ input search پیدا شد با selector: ${selector}`);
+          break;
+        }
+      } catch (e) {
+        logger.warn(`⚠️ selector ${selector} ناموفق: ${e.message}`);
+      }
+    }
+    
+    if (!searchInput) {
+      logger.error('❌ input search پیدا نشد');
+      return { status: 'error', message: 'Search input not found', results: [] };
+    }
     
     // مرحله 2: پاک کردن فیلد search و وارد کردن نام ارز
     logger.info('📝 در حال وارد کردن نام ارز در فیلد search...');
-    await page.evaluate(() => document.querySelector('input[data-test="Input"][name="asset-search-field"]').value = '');
-    await page.type('input[data-test="Input"][name="asset-search-field"]', currencyName);
+    
+    // کلیک روی input و پاک کردن محتوا
+    await searchInput.click();
+    await page.evaluate(() => {
+      const input = document.querySelector('input[data-test="Input"][name="asset-search-field"], input[name="asset-search-field"], input[placeholder="Search"]');
+      if (input) input.value = '';
+    });
+    
+    // تایپ کردن نام ارز
+    await page.type('input[data-test="Input"][name="asset-search-field"], input[name="asset-search-field"], input[placeholder="Search"]', currencyName);
     logger.info('✅ نام ارز وارد شد');
     
     // مرحله 3: صبر برای نتایج جستجو
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 3000));
     logger.info('⏳ صبر برای نتایج جستجو...');
     
     // مرحله 4: استخراج نتایج جستجو
