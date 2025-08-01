@@ -56,7 +56,7 @@ async function setupBrowser() {
     
     // مرحله 2: کلیک روی دکمه Login
     logger.info('🔍 در حال پیدا کردن دکمه Login...');
-    await page.waitForSelector('button[data-test="auth-tab-item"]', { timeout: 10000 });
+    await page.waitForSelector('button[data-test="auth-tab-item"]', { timeout: 15000 });
     await page.click('button[data-test="auth-tab-item"]');
     logger.info('✅ دکمه Login کلیک شد');
     
@@ -66,13 +66,13 @@ async function setupBrowser() {
     
     // مرحله 3: وارد کردن یوزرنیم
     logger.info('📝 در حال وارد کردن یوزرنیم...');
-    await page.waitForSelector('input[data-test="Input"][name="email"]', { timeout: 10000 });
+    await page.waitForSelector('input[data-test="Input"][name="email"]', { timeout: 15000 });
     await page.type('input[data-test="Input"][name="email"]', 'mmrrssoollii@gmail10p.com');
     logger.info('✅ یوزرنیم وارد شد');
     
     // مرحله 4: وارد کردن پسورد
     logger.info('🔐 در حال وارد کردن پسورد...');
-    await page.waitForSelector('input[data-test="Input"][name="password"]', { timeout: 10000 });
+    await page.waitForSelector('input[data-test="Input"][name="password"]', { timeout: 15000 });
     await page.type('input[data-test="Input"][name="password"]', 'mmm123456789');
     logger.info('✅ پسورد وارد شد');
     
@@ -81,7 +81,7 @@ async function setupBrowser() {
     
     // مرحله 5: کلیک روی دکمه Log In
     logger.info('🔍 در حال پیدا کردن دکمه Log In...');
-    await page.waitForSelector('button[data-test="form-signin-button"]', { timeout: 10000 });
+    await page.waitForSelector('button[data-test="form-signin-button"]', { timeout: 15000 });
     await page.click('button[data-test="form-signin-button"]');
     logger.info('✅ دکمه Log In کلیک شد');
     
@@ -110,9 +110,34 @@ async function setupBrowser() {
     
     // مرحله 6: کلیک روی دکمه Halal Market Axis
     logger.info('🔍 در حال پیدا کردن دکمه Halal Market Axis...');
-    await page.waitForSelector('[data-test="asset-select-button-HMA_X/ftt"]', { timeout: 10000 });
-    await page.click('[data-test="asset-select-button-HMA_X/ftt"]');
-    logger.info('✅ دکمه Halal Market Axis کلیک شد');
+    await page.waitForSelector('[data-test="asset-select-button-HMA_X/ftt"], [data-test="assets-tabs-tab-selected"]', { timeout: 15000 });
+    
+    // تلاش با selector های مختلف
+    const selectors = [
+      '[data-test="asset-select-button-HMA_X/ftt"]',
+      '[data-test="assets-tabs-tab-selected"]',
+      '.css-e5732h.e1r2g46w0',
+      'div[role="button"][data-test="assets-tabs-tab-selected"]'
+    ];
+    
+    let clicked = false;
+    for (const selector of selectors) {
+      try {
+        const element = await page.$(selector);
+        if (element) {
+          await element.click();
+          logger.info(`✅ دکمه Halal Market Axis کلیک شد با selector: ${selector}`);
+          clicked = true;
+          break;
+        }
+      } catch (e) {
+        logger.warn(`⚠️ تلاش با selector ${selector} ناموفق: ${e.message}`);
+      }
+    }
+    
+    if (!clicked) {
+      throw new Error('دکمه Halal Market Axis پیدا نشد');
+    }
     
     // صبر برای باز شدن dropdown
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -120,7 +145,7 @@ async function setupBrowser() {
     
     // مرحله 7: صبر برای لود dropdown و پیدا کردن input search
     logger.info('🔍 در حال پیدا کردن dropdown و input search...');
-    await page.waitForSelector('[data-test="assets-tabs-dropdown"]', { timeout: 10000 });
+    await page.waitForSelector('[data-test="assets-tabs-dropdown"]', { timeout: 15000 });
     logger.info('✅ dropdown باز شد');
     
     return true;
@@ -188,7 +213,7 @@ async function searchCurrency(currencyName) {
     
     // مرحله 1: پیدا کردن input search
     logger.info('🔍 در حال پیدا کردن input search...');
-    await page.waitForSelector('input[data-test="Input"][name="asset-search-field"]', { timeout: 10000 });
+    await page.waitForSelector('input[data-test="Input"][name="asset-search-field"]', { timeout: 15000 });
     
     // مرحله 2: پاک کردن فیلد search و وارد کردن نام ارز
     logger.info('📝 در حال وارد کردن نام ارز در فیلد search...');
