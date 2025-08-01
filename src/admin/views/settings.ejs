@@ -1,253 +1,0 @@
-<!-- Settings Page -->
-<div class="page-header">
-    <h1>⚙️ تنظیمات</h1>
-    <p>مدیریت تنظیمات کلی سیستم</p>
-</div>
-
-<!-- General Settings -->
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">🔧 تنظیمات عمومی</h2>
-    </div>
-    
-    <form id="settings-form">
-        <div class="form-group">
-            <label for="minPayout" class="form-label">حداقل Payout (%)</label>
-            <input type="number" id="minPayout" name="minPayout" class="form-control" 
-                   value="<%= config.minPayout %>" min="0" max="100" required>
-            <small class="text-light">پیام‌هایی که payout کمتر از این مقدار داشته باشند حذف می‌شوند</small>
-        </div>
-        
-        <div class="form-group">
-            <label for="telegramToken" class="form-label">توکن تلگرام</label>
-            <input type="password" id="telegramToken" name="telegramToken" class="form-control" 
-                   value="***" readonly>
-            <small class="text-light">توکن ربات تلگرام برای اتصال به کانال</small>
-        </div>
-        
-        <div class="form-group">
-            <label for="channelId" class="form-label">شناسه کانال</label>
-            <input type="text" id="channelId" name="channelId" class="form-control" 
-                   value="@example_channel" readonly>
-            <small class="text-light">شناسه کانال تلگرام برای مانیتور کردن</small>
-        </div>
-        
-        <div class="form-group">
-            <label for="apiPort" class="form-label">پورت API</label>
-            <input type="number" id="apiPort" name="apiPort" class="form-control" 
-                   value="5000" min="1000" max="9999">
-            <small class="text-light">پورت سرور API</small>
-        </div>
-        
-        <button type="submit" class="btn btn-primary">
-            <i class="fas fa-save"></i>
-            ذخیره تنظیمات
-        </button>
-    </form>
-</div>
-
-<!-- Scraping Settings -->
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">🕷️ تنظیمات اسکرپینگ</h2>
-    </div>
-    
-    <div class="row">
-        <div class="col-md-6">
-            <h3>تنظیمات Browser</h3>
-            
-            <div class="form-group">
-                <label for="headless" class="form-label">حالت Headless</label>
-                <select id="headless" name="headless" class="form-control">
-                    <option value="true" selected>فعال</option>
-                    <option value="false">غیرفعال</option>
-                </select>
-                <small class="text-light">اجرای مرورگر بدون نمایش رابط کاربری</small>
-            </div>
-            
-            <div class="form-group">
-                <label for="timeout" class="form-label">Timeout (ثانیه)</label>
-                <input type="number" id="timeout" name="timeout" class="form-control" 
-                       value="30" min="10" max="120">
-                <small class="text-light">حداکثر زمان انتظار برای لود صفحه</small>
-            </div>
-            
-            <div class="form-group">
-                <label for="waitTime" class="form-label">زمان انتظار (ثانیه)</label>
-                <input type="number" id="waitTime" name="waitTime" class="form-control" 
-                       value="3" min="1" max="10">
-                <small class="text-light">زمان انتظار بعد از لود صفحه</small>
-            </div>
-        </div>
-        
-        <div class="col-md-6">
-            <h3>تنظیمات Queue</h3>
-            
-            <div class="form-group">
-                <label for="queueConcurrency" class="form-label">تعداد همزمان</label>
-                <input type="number" id="queueConcurrency" name="queueConcurrency" class="form-control" 
-                       value="5" min="1" max="20">
-                <small class="text-light">تعداد پیام‌های همزمان در صف</small>
-            </div>
-            
-            <div class="form-group">
-                <label for="retryAttempts" class="form-label">تعداد تلاش مجدد</label>
-                <input type="number" id="retryAttempts" name="retryAttempts" class="form-control" 
-                       value="3" min="1" max="10">
-                <small class="text-light">تعداد تلاش‌های مجدد در صورت خطا</small>
-            </div>
-            
-            <div class="form-group">
-                <label for="retryDelay" class="form-label">تاخیر تلاش مجدد (ثانیه)</label>
-                <input type="number" id="retryDelay" name="retryDelay" class="form-control" 
-                       value="5" min="1" max="30">
-                <small class="text-light">زمان انتظار بین تلاش‌های مجدد</small>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Database Settings -->
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">🗄️ تنظیمات دیتابیس</h2>
-    </div>
-    
-    <div class="form-group">
-        <label for="dbUrl" class="form-label">آدرس دیتابیس</label>
-        <input type="text" id="dbUrl" name="dbUrl" class="form-control" 
-               value="mongodb://localhost:27017/currencies" readonly>
-        <small class="text-light">آدرس اتصال به MongoDB</small>
-    </div>
-    
-    <div class="form-group">
-        <label for="dbName" class="form-label">نام دیتابیس</label>
-        <input type="text" id="dbName" name="dbName" class="form-control" 
-               value="currencies" readonly>
-        <small class="text-light">نام دیتابیس MongoDB</small>
-    </div>
-    
-    <div class="d-flex justify-between">
-        <button class="btn btn-success" onclick="testDatabaseConnection()">
-            <i class="fas fa-database"></i>
-            تست اتصال دیتابیس
-        </button>
-        
-        <button class="btn btn-warning" onclick="backupDatabase()">
-            <i class="fas fa-download"></i>
-            پشتیبان‌گیری
-        </button>
-        
-        <button class="btn btn-danger" onclick="clearDatabase()">
-            <i class="fas fa-trash"></i>
-            پاک کردن دیتابیس
-        </button>
-    </div>
-</div>
-
-<!-- System Information -->
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">ℹ️ اطلاعات سیستم</h2>
-    </div>
-    
-    <div class="row">
-        <div class="col-md-6">
-            <h3>اطلاعات سرور</h3>
-            <table class="table">
-                <tr>
-                    <td><strong>Node.js Version:</strong></td>
-                    <td id="nodeVersion">Loading...</td>
-                </tr>
-                <tr>
-                    <td><strong>Platform:</strong></td>
-                    <td id="platform">Loading...</td>
-                </tr>
-                <tr>
-                    <td><strong>Memory Usage:</strong></td>
-                    <td id="memoryUsage">Loading...</td>
-                </tr>
-                <tr>
-                    <td><strong>Uptime:</strong></td>
-                    <td id="uptime">Loading...</td>
-                </tr>
-            </table>
-        </div>
-        
-        <div class="col-md-6">
-            <h3>آمار سیستم</h3>
-            <table class="table">
-                <tr>
-                    <td><strong>کل رکوردها:</strong></td>
-                    <td id="totalRecords">Loading...</td>
-                </tr>
-                <tr>
-                    <td><strong>رکوردهای امروز:</strong></td>
-                    <td id="todayRecords">Loading...</td>
-                </tr>
-                <tr>
-                    <td><strong>سایت‌های فعال:</strong></td>
-                    <td id="activeSites">Loading...</td>
-                </tr>
-                <tr>
-                    <td><strong>وضعیت ربات:</strong></td>
-                    <td id="botStatus">Loading...</td>
-                </tr>
-            </table>
-        </div>
-    </div>
-</div>
-
-<script>
-// Load system information
-async function loadSystemInfo() {
-    try {
-        const response = await fetch('/admin/api/system-info');
-        const data = await response.json();
-        
-        if (data.success) {
-            document.getElementById('nodeVersion').textContent = data.info.nodeVersion;
-            document.getElementById('platform').textContent = data.info.platform;
-            document.getElementById('memoryUsage').textContent = data.info.memoryUsage;
-            document.getElementById('uptime').textContent = data.info.uptime;
-            document.getElementById('totalRecords').textContent = data.stats.totalRecords;
-            document.getElementById('todayRecords').textContent = data.stats.todayRecords;
-            document.getElementById('activeSites').textContent = data.stats.activeSites;
-            document.getElementById('botStatus').textContent = data.stats.botStatus;
-        }
-    } catch (error) {
-        console.error('Error loading system info:', error);
-    }
-}
-
-function testDatabaseConnection() {
-    // API call to test database connection
-    console.log('Testing database connection...');
-    adminPanel.showAlert('تست اتصال دیتابیس در حال انجام است...', 'info');
-}
-
-function backupDatabase() {
-    if (confirm('آیا مطمئن هستید که می‌خواهید از دیتابیس پشتیبان تهیه کنید؟')) {
-        // API call to backup database
-        console.log('Backing up database...');
-        adminPanel.showAlert('پشتیبان‌گیری در حال انجام است...', 'info');
-    }
-}
-
-function clearDatabase() {
-    if (confirm('⚠️ هشدار: این عملیات تمام رکوردها را حذف می‌کند. آیا مطمئن هستید؟')) {
-        if (confirm('آیا واقعاً مطمئن هستید؟ این عملیات غیرقابل بازگشت است!')) {
-            // API call to clear database
-            console.log('Clearing database...');
-            adminPanel.showAlert('پاک کردن دیتابیس در حال انجام است...', 'warning');
-        }
-    }
-}
-
-// Load system info when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    loadSystemInfo();
-    // Refresh system info every 30 seconds
-    setInterval(loadSystemInfo, 30000);
-});
-</script> 

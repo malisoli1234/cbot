@@ -1,16 +1,6 @@
 {
-  "minPayout": 70,
-  "telegram": {
-    "botToken": "7554355277:AAGFB8QuBEp9BqeZqD3xyVjZVlpzbRQ3xEg",
-    "inputChannelId": "@fatehsignalfilter",
-    "outputChannelId": "@fatehsignalbot",
-    "enabled": true
-  },
-  "database": {
-    "uri": "mongodb://localhost:27017/currencies"
-  },
-  "server": {
-    "port": 5000,
-    "autoOpenBrowser": true
-  }
+  "telegramBotToken": "7554355277:AAGFB8QuBEp9BqeZqD3xyVjZVlpzbRQ3xEg",
+  "inputChannelId": "-1002498428726",
+  "outputChannelId": "-1002498428726",
+  "minPayout": 70
 } 
