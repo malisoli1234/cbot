@@ -463,7 +463,19 @@ async function searchCurrency(currencyName) {
       'input[placeholder="Search"]',
       '.eyxVtLklPL._0-iVLEdBew._1ZFlsEbrKt',
       'input[autocomplete="off"]',
-      'input[type="text"]'
+      'input[type="text"]',
+      'input[data-test="Input"][name="asset-search-field"]',
+      'input[placeholder*="Search"]',
+      'input[placeholder*="search"]',
+      'input[placeholder*="جستجو"]',
+      '.search__field',
+      'input.search__field',
+      'input[class*="search"]',
+      'input[class*="Search"]',
+      'input[data-test*="search"]',
+      'input[data-test*="Search"]',
+      'input[name*="search"]',
+      'input[name*="Search"]'
     ];
     
     let searchInput = null;
@@ -482,7 +494,34 @@ async function searchCurrency(currencyName) {
     
     if (!searchInput) {
       logger.error('❌ input search پیدا نشد');
-      return { status: 'error', message: 'Search input not found', results: [] };
+      
+      // Debug: گرفتن تمام input ها
+      const allInputs = await page.evaluate(() => {
+        const inputs = document.querySelectorAll('input');
+        return Array.from(inputs).map(input => ({
+          tagName: input.tagName,
+          type: input.type,
+          name: input.name,
+          placeholder: input.placeholder,
+          className: input.className,
+          id: input.id,
+          'data-test': input.getAttribute('data-test'),
+          'data-name': input.getAttribute('data-name')
+        }));
+      });
+      
+      logger.error(`🔍 تمام input های موجود: ${JSON.stringify(allInputs, null, 2)}`);
+      
+      return { 
+        status: 'error', 
+        message: 'Search input not found', 
+        results: [],
+        debug: {
+          allInputs: allInputs,
+          pageTitle: await page.title(),
+          url: page.url()
+        }
+      };
     }
     
     // مرحله 2: پاک کردن فیلد search و وارد کردن نام ارز
