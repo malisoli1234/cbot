@@ -2,9 +2,13 @@
  * مدیریت مرورگر Puppeteer
  */
 
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const fs = require('fs');
 const path = require('path');
+
+// استفاده از StealthPlugin برای مخفی کردن bot
+puppeteer.use(StealthPlugin());
 
 class BrowserManager {
   constructor() {
@@ -48,9 +52,10 @@ class BrowserManager {
                     headless: 'new',
                     args: [
                       '--no-sandbox',
-                      '--disable-gpu',
                       '--disable-dev-shm-usage',
-                      '--disable-webgl',
+                      '--enable-webgl',
+                      '--ignore-gpu-blacklist',
+                      '--disable-gpu-driver-bug-workarounds',
                       '--disable-accelerated-2d-canvas',
                       '--blink-settings=imagesEnabled=false',
                       '--disable-extensions',
@@ -63,6 +68,26 @@ class BrowserManager {
                       '--disable-ipc-flooding-protection',
                       '--log-level=3',
                       '--silent-launch',
+                      '--disable-web-security',
+                      '--disable-features=VizDisplayCompositor',
+                      '--disable-dev-shm-usage',
+                      '--disable-setuid-sandbox',
+                      '--no-first-run',
+                      '--no-default-browser-check',
+                      '--disable-background-networking',
+                      '--disable-sync',
+                      '--disable-translate',
+                      '--hide-scrollbars',
+                      '--mute-audio',
+                      '--no-zygote',
+                      '--disable-background-timer-throttling',
+                      '--disable-renderer-backgrounding',
+                      '--disable-backgrounding-occluded-windows',
+                      '--disable-ipc-flooding-protection',
+                      '--disable-features=TranslateUI',
+                      '--disable-logging',
+                      '--log-level=3',
+                      '--silent-launch',
                       '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
                     ],
                   };
@@ -73,6 +98,8 @@ class BrowserManager {
         console.log(`🌐 استفاده از Chrome در: ${chromePath}`);
       } else {
         console.log('🌐 استفاده از Chrome پیش‌فرض Puppeteer');
+        // حذف executablePath تا از Chrome پیش‌فرض استفاده کنه
+        delete launchOptions.executablePath;
       }
 
       this.browser = await puppeteer.launch(launchOptions);
@@ -83,7 +110,7 @@ class BrowserManager {
       console.error(`❌ خطا در راه‌اندازی مرورگر: ${error.message}`);
       
       // اگر Chrome پیدا نشد، سعی کن بدون headless اجرا کن
-      if (error.message.includes('Could not find Chrome')) {
+      if (error.message.includes('Could not find Chrome') || error.message.includes('Timed out')) {
         console.log('🔄 تلاش برای راه‌اندازی بدون headless...');
         try {
                                 this.browser = await puppeteer.launch({
