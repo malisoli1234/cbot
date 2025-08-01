@@ -693,33 +693,30 @@ async function setupBrowser() {
     }
     
     // صبر برای باز شدن dropdown
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 3000));
     logger.info('⏳ صبر برای باز شدن dropdown...');
     
     // مرحله 7: صبر برای لود dropdown و پیدا کردن input search
     logger.info('🔍 در حال پیدا کردن dropdown و input search...');
     
-    // تلاش با selector های مختلف برای dropdown
-    const dropdownSelectors = [
-      '[data-test="assets-tabs-dropdown"]',
-      '[data-test="asset-select-dropdown"]',
-      '.css-1gbgf2c.e1su41ew0',
-      '[data-test="asset-select-button"]',
-      '[data-test="assets-tabs-tab"]',
-      '.css-e5732h.e1r2g46w0',
-      'div[role="button"]',
-      '[data-test*="dropdown"]',
-      '[data-test*="asset"]'
+    // تلاش برای پیدا کردن input search در dropdown
+    const searchInputSelectors = [
+      'input[data-test="Input"][name="asset-search-field"]',
+      'input[name="asset-search-field"]',
+      'input[placeholder*="Search"]',
+      'input[placeholder*="search"]',
+      'input[data-test*="search"]',
+      'input[data-test*="Search"]'
     ];
     
-    let dropdownFound = false;
-    for (const selector of dropdownSelectors) {
+    let searchInputFound = false;
+    for (const selector of searchInputSelectors) {
       try {
-        logger.info(`🔍 تلاش برای dropdown با selector: ${selector}`);
+        logger.info(`🔍 تلاش برای input search با selector: ${selector}`);
         const element = await page.$(selector);
         if (element) {
-          logger.info(`✅ dropdown پیدا شد با selector: ${selector}`);
-          dropdownFound = true;
+          logger.info(`✅ input search پیدا شد با selector: ${selector}`);
+          searchInputFound = true;
           break;
         }
       } catch (e) {
@@ -727,13 +724,42 @@ async function setupBrowser() {
       }
     }
     
-    if (!dropdownFound) {
-      logger.warn('⚠️ dropdown پیدا نشد، ادامه می‌دهیم...');
+    if (!searchInputFound) {
+      // تلاش با JavaScript برای پیدا کردن input search
+      try {
+        logger.info('🔍 تلاش با JavaScript برای پیدا کردن input search...');
+        const found = await page.evaluate(() => {
+          const inputs = document.querySelectorAll('input');
+          for (const input of inputs) {
+            const placeholder = input.placeholder?.toLowerCase() || '';
+            const name = input.name?.toLowerCase() || '';
+            const dataTest = input.getAttribute('data-test')?.toLowerCase() || '';
+            
+            if (placeholder.includes('search') || name.includes('search') || dataTest.includes('search')) {
+              return true;
+            }
+          }
+          return false;
+        });
+        
+        if (found) {
+          logger.info('✅ input search پیدا شد با JavaScript');
+          searchInputFound = true;
+        }
+      } catch (e) {
+        logger.warn(`⚠️ تلاش با JavaScript ناموفق: ${e.message}`);
+      }
+    }
+    
+    if (!searchInputFound) {
+      logger.warn('⚠️ input search پیدا نشد، اما ادامه می‌دهیم...');
     }
     
     // صبر برای لود کامل صفحه
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await new Promise(resolve => setTimeout(resolve, 2000));
     logger.info('⏳ صبر برای لود کامل صفحه...');
+    
+    logger.info('✅ آماده برای دریافت درخواست‌های API...');
     
     // شروع تغییر خودکار یوزر ایجنت
     startAutoUserAgentChange();
@@ -833,18 +859,50 @@ async function searchCurrency(currencyName, page = null) {
     logger.info(`🔍 در حال جستجوی ارز: ${currencyName}`);
     
     // صبر برای آماده شدن input search
-    await targetPage.waitForSelector('input[data-test="Input"][name="asset-search-field"]', { timeout: 10000 });
+    const searchInputSelectors = [
+      'input[data-test="Input"][name="asset-search-field"]',
+      'input[name="asset-search-field"]',
+      'input[placeholder*="Search"]',
+      'input[placeholder*="search"]',
+      'input[data-test*="search"]',
+      'input[data-test*="Search"]'
+    ];
+    
+    let searchInput = null;
+    for (const selector of searchInputSelectors) {
+      try {
+        logger.info(`🔍 تلاش برای input search با selector: ${selector}`);
+        searchInput = await targetPage.$(selector);
+        if (searchInput) {
+          logger.info(`✅ input search پیدا شد با selector: ${selector}`);
+          break;
+        }
+      } catch (e) {
+        logger.warn(`⚠️ selector ${selector} ناموفق: ${e.message}`);
+      }
+    }
+    
+    if (!searchInput) {
+      throw new Error('Input search پیدا نشد');
+    }
     
     // پاک کردن فیلد search و وارد کردن نام ارز
     await targetPage.evaluate(() => {
-      const input = document.querySelector('input[data-test="Input"][name="asset-search-field"]');
-      if (input) {
-        input.value = '';
-        input.focus();
+      const inputs = document.querySelectorAll('input');
+      for (const input of inputs) {
+        const placeholder = input.placeholder?.toLowerCase() || '';
+        const name = input.name?.toLowerCase() || '';
+        const dataTest = input.getAttribute('data-test')?.toLowerCase() || '';
+        
+        if (placeholder.includes('search') || name.includes('search') || dataTest.includes('search')) {
+          input.value = '';
+          input.focus();
+          break;
+        }
       }
     });
     
-    await targetPage.type('input[data-test="Input"][name="asset-search-field"]', currencyName);
+    await searchInput.type(currencyName);
     logger.info('✅ نام ارز وارد شد');
 
     // صبر برای لود نتایج
