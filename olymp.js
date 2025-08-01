@@ -142,11 +142,79 @@ async function changeIP(page = null) {
       'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
       'Mozilla/5.0 (iPad; CPU OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Mobile/15E148 Safari/604.1',
       'Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+      
+      // Chrome Windows - نسخه‌های قدیمی‌تر
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
+      
+      // Chrome Mac - نسخه‌های قدیمی‌تر
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
+      
+      // Firefox Windows - نسخه‌های قدیمی‌تر
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:116.0) Gecko/20100101 Firefox/116.0',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:115.0) Gecko/20100101 Firefox/115.0',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:114.0) Gecko/20100101 Firefox/114.0',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:113.0) Gecko/20100101 Firefox/113.0',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:112.0) Gecko/20100101 Firefox/112.0',
+      
+      // Firefox Mac - نسخه‌های قدیمی‌تر
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:116.0) Gecko/20100101 Firefox/116.0',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:115.0) Gecko/20100101 Firefox/115.0',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:114.0) Gecko/20100101 Firefox/114.0',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:113.0) Gecko/20100101 Firefox/113.0',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:112.0) Gecko/20100101 Firefox/112.0',
+      
+      // Safari Mac - نسخه‌های قدیمی‌تر
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.4 Safari/605.1.15',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.3 Safari/605.1.15',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.2 Safari/605.1.15',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Safari/605.1.15',
+      
+      // Edge Windows - نسخه‌های قدیمی‌تر
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.0.0',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36 Edg/112.0.0.0',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.0.0',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.0.0',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 Edg/109.0.0.0',
+      
+      // Opera Windows - نسخه‌های قدیمی‌تر
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 OPR/99.0.0.0',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36 OPR/98.0.0.0',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 OPR/97.0.0.0',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 OPR/96.0.0.0',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 OPR/95.0.0.0',
+      
+      // Mobile Chrome Android - نسخه‌های قدیمی‌تر
+      'Mozilla/5.0 (Linux; Android 13; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Mobile Safari/537.36',
+      'Mozilla/5.0 (Linux; Android 12; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36',
+      'Mozilla/5.0 (Linux; Android 11; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Mobile Safari/537.36',
+      'Mozilla/5.0 (Linux; Android 10; OnePlus 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Mobile Safari/537.36',
+      'Mozilla/5.0 (Linux; Android 9; SM-G973F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Mobile Safari/537.36',
+      
+      // Mobile Safari iOS - نسخه‌های قدیمی‌تر
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1',
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 16_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.4 Mobile/15E148 Safari/604.1',
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 16_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.3 Mobile/15E148 Safari/604.1',
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 16_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.2 Mobile/15E148 Safari/604.1',
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 16_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Mobile/15E148 Safari/604.1',
+      'Mozilla/5.0 (iPad; CPU OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1',
+      'Mozilla/5.0 (iPad; CPU OS 16_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.4 Mobile/15E148 Safari/604.1',
+      'Mozilla/5.0 (iPad; CPU OS 16_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.3 Mobile/15E148 Safari/604.1',
+      'Mozilla/5.0 (iPad; CPU OS 16_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.2 Mobile/15E148 Safari/604.1',
+      'Mozilla/5.0 (iPad; CPU OS 16_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Mobile/15E148 Safari/604.1',
     ];
     
     // رندوم‌سازی بهتر با استفاده از timestamp و Math.random
     const timestamp = Date.now();
-    const randomSeed = (timestamp % 1000000) + Math.random();
+    const randomSeed = (timestamp % 1000000) + Math.random() * 1000;
     const randomIndex = Math.floor(randomSeed % userAgents.length);
     const randomUserAgent = userAgents[randomIndex];
     
@@ -188,7 +256,7 @@ async function changeIP(page = null) {
       { width: 412, height: 915 },
     ];
     
-    const viewportSeed = (timestamp % 1000000) + Math.random() * 1000;
+    const viewportSeed = (timestamp % 1000000) + Math.random() * 2000;
     const viewportIndex = Math.floor(viewportSeed % viewports.length);
     const randomViewport = viewports[viewportIndex];
     
@@ -196,7 +264,8 @@ async function changeIP(page = null) {
     
     // تغییر زبان و locale به صورت رندوم
     const languages = ['en-US', 'en-GB', 'en-CA', 'en-AU', 'de-DE', 'fr-FR', 'es-ES', 'it-IT', 'pt-BR', 'ja-JP', 'ko-KR', 'zh-CN', 'ar-SA', 'ru-RU'];
-    const randomLang = languages[Math.floor((timestamp % 1000000 + Math.random() * 1000) % languages.length)];
+    const langSeed = (timestamp % 1000000) + Math.random() * 1500;
+    const randomLang = languages[Math.floor(langSeed % languages.length)];
     
     await targetPage.setExtraHTTPHeaders({
       'Accept-Language': `${randomLang},${randomLang.split('-')[0]};q=0.9,en;q=0.8`,
@@ -266,6 +335,9 @@ let browser = null;
 let page = null;
 let userAgentInterval = null; // برای تغییر خودکار یوزر ایجنت
 
+// تعریف global.page برای استفاده در تابع changeIP
+global.page = null;
+
 async function setupBrowser() {
   try {
     logger.info('راه‌اندازی مرورگر...');
@@ -287,6 +359,7 @@ async function setupBrowser() {
       ],
     });
     page = await browser.newPage();
+    global.page = page; // تنظیم global.page
     await page.setRequestInterception(true);
     page.on('request', (req) => {
       if (['image', 'stylesheet', 'font', 'media'].includes(req.resourceType())) {
@@ -632,20 +705,24 @@ async function searchCurrency(currencyName, page = null) {
     logger.info(`🔍 در حال جستجوی ارز: ${currencyName}`);
     
     // صبر برای آماده شدن input search
-    await targetPage.waitForSelector('input[data-test="Input"][name="asset-search-field"]', { timeout: 5000 });
+    await targetPage.waitForSelector('input[data-test="Input"][name="asset-search-field"]', { timeout: 10000 });
     
     // پاک کردن فیلد search و وارد کردن نام ارز
-    await targetPage.evaluate(() => document.querySelector('input[data-test="Input"][name="asset-search-field"]').value = '');
+    await targetPage.evaluate(() => {
+      const input = document.querySelector('input[data-test="Input"][name="asset-search-field"]');
+      if (input) {
+        input.value = '';
+        input.focus();
+      }
+    });
+    
     await targetPage.type('input[data-test="Input"][name="asset-search-field"]', currencyName);
     logger.info('✅ نام ارز وارد شد');
 
-    // صبر تا وقتی حداقل یه آیتم لود بشه یا تایم‌اوت
-    await targetPage.waitForFunction(
-      () => document.querySelector('[data-test="asset-item"]') !== null,
-      { timeout: 5000 }
-    );
-
-    // استخراج و فرمت نتایج
+    // صبر برای لود نتایج
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // تلاش برای پیدا کردن نتایج با selector های مختلف
     const results = await targetPage.evaluate(() => {
       const items = document.querySelectorAll('[data-test="asset-item"]');
       const results = [];
@@ -654,12 +731,24 @@ async function searchCurrency(currencyName, page = null) {
         try {
           const ticker = item.getAttribute('data-ticker');
           const payoutElement = item.querySelector('[data-test="asset-item-value"]');
-          const payout = payoutElement ? payoutElement.textContent.trim() : 'N/A';
+          const titleElement = item.querySelector('[data-test^="asset-item-title-"]');
+          
+          let payout = 'N/A';
+          let title = 'N/A';
+          
+          if (payoutElement) {
+            payout = payoutElement.textContent.trim();
+          }
+          
+          if (titleElement) {
+            title = titleElement.textContent.trim();
+          }
           
           if (ticker) {
             results.push({ 
               currency: ticker, 
-              payout: payout 
+              payout: payout,
+              title: title
             });
           }
         } catch (e) {
@@ -681,17 +770,55 @@ async function searchCurrency(currencyName, page = null) {
   } catch (e) {
     const duration = Date.now() - startTime;
     logger.error(`❌ خطا در جستجوی ارز ${currencyName}: ${e.message} (زمان: ${duration}ms)`);
+    
+    // اضافه کردن اطلاعات دیباگ
+    try {
+      const debugInfo = await targetPage.evaluate(() => {
+        const inputs = document.querySelectorAll('input');
+        const pageTitle = document.title;
+        const currentUrl = window.location.href;
+        
+        return {
+          inputs: Array.from(inputs).map(input => ({
+            name: input.name,
+            type: input.type,
+            placeholder: input.placeholder,
+            'data-test': input.getAttribute('data-test')
+          })),
+          pageTitle,
+          currentUrl
+        };
+      });
+      
+      logger.error(`🔍 اطلاعات دیباگ: ${JSON.stringify(debugInfo)}`);
+    } catch (debugError) {
+      logger.error(`❌ خطا در دریافت اطلاعات دیباگ: ${debugError.message}`);
+    }
+    
     return { status: 'error', message: `Search failed: ${e.message}`, results: [] };
   }
 }
 
 app.post('/api/search-currency', async (req, res) => {
-  const { currency } = req.body;
-  if (!currency) {
-    return res.status(400).json({ status: 'error', message: 'No currency provided', results: [] });
+  try {
+    const { currency } = req.body;
+    if (!currency) {
+      return res.status(400).json({ status: 'error', message: 'No currency provided', results: [] });
+    }
+    
+    logger.info(`🔍 درخواست جستجوی ارز: ${currency}`);
+    const result = await searchCurrency(currency);
+    
+    logger.info(`✅ نتیجه جستجو: ${JSON.stringify(result)}`);
+    res.json(result);
+  } catch (e) {
+    logger.error(`❌ خطا در API جستجو: ${e.message}`);
+    res.status(500).json({ 
+      status: 'error', 
+      message: `API error: ${e.message}`, 
+      results: [] 
+    });
   }
-  const result = await searchCurrency(currency);
-  res.json(result);
 });
 
 // تست endpoint
@@ -718,6 +845,47 @@ app.get('/api/test', async (req, res) => {
     timestamp: new Date().toISOString(),
     method: 'GET'
   });
+});
+
+// endpoint برای بررسی وضعیت صفحه
+app.get('/api/page-status', async (req, res) => {
+  try {
+    if (!page) {
+      return res.status(500).json({ 
+        status: 'error', 
+        message: 'Page not initialized', 
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    const pageInfo = await page.evaluate(() => {
+      return {
+        title: document.title,
+        url: window.location.href,
+        searchInputs: Array.from(document.querySelectorAll('input[data-test="Input"][name="asset-search-field"]')).map(input => ({
+          name: input.name,
+          placeholder: input.placeholder,
+          value: input.value,
+          visible: input.offsetParent !== null
+        })),
+        assetItems: Array.from(document.querySelectorAll('[data-test="asset-item"]')).length,
+        dropdowns: Array.from(document.querySelectorAll('[data-test*="dropdown"]')).length
+      };
+    });
+    
+    res.json({ 
+      status: 'success', 
+      pageInfo,
+      timestamp: new Date().toISOString()
+    });
+  } catch (e) {
+    logger.error(`❌ خطا در بررسی وضعیت صفحه: ${e.message}`);
+    res.status(500).json({ 
+      status: 'error', 
+      message: `Page status error: ${e.message}`, 
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 // endpoint برای تغییر دستی یوزر ایجنت
