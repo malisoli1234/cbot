@@ -49,10 +49,10 @@ const proxyList = [
 
 let currentProxyIndex = 0;
 
-// تابع تغییر پروکسی (بدون تغییر یوزر ایجنت)
+// تابع تغییر IP با پروکسی و یوزر ایجنت
 async function changeIP() {
   try {
-    logger.info('🌐 در حال تغییر پروکسی...');
+    logger.info('🌐 در حال تغییر IP...');
     
     if (!USE_PROXY) {
       logger.info('⚠️ پروکسی غیرفعال است، بدون پروکسی ادامه می‌دهیم...');
@@ -75,12 +75,37 @@ async function changeIP() {
         };
       });
       
-      logger.info(`✅ پروکسی تغییر کرد: ${proxy}`);
+      // تغییر User-Agent
+      const userAgents = [
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+      ];
+      
+      const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
+      await page.setUserAgent(randomUserAgent);
+      
+      // تغییر Viewport
+      const viewports = [
+        { width: 1366, height: 768 },
+        { width: 1920, height: 1080 },
+        { width: 1280, height: 720 },
+        { width: 1440, height: 900 },
+        { width: 1536, height: 864 },
+      ];
+      
+      const randomViewport = viewports[Math.floor(Math.random() * viewports.length)];
+      await page.setViewport(randomViewport);
+      
+      logger.info(`✅ IP تغییر کرد - User-Agent: ${randomUserAgent.substring(0, 50)}...`);
     } else {
       logger.warn('⚠️ هیچ پروکسی‌ای تعریف نشده');
     }
   } catch (e) {
-    logger.warn(`⚠️ خطا در تغییر پروکسی: ${e.message}`);
+    logger.warn(`⚠️ خطا در تغییر IP: ${e.message}`);
   }
 }
 
@@ -129,13 +154,13 @@ async function setupBrowser() {
     });
     await page.setViewport({ width: 1280, height: 720 });
     
-    // مرحله 1: تغییر پروکسی قبل از شروع (اختیاری)
-    logger.info('🔄 در حال تغییر پروکسی...');
+    // مرحله 1: تغییر IP قبل از شروع (اختیاری)
+    logger.info('🔄 در حال تغییر IP...');
     try {
       await changeIP();
-      logger.info('✅ پروکسی تغییر کرد');
+      logger.info('✅ IP تغییر کرد');
     } catch (e) {
-      logger.warn('⚠️ خطا در تغییر پروکسی، بدون پروکسی ادامه می‌دهیم...');
+      logger.warn('⚠️ خطا در تغییر IP، بدون پروکسی ادامه می‌دهیم...');
     }
     
     // مرحله 2: رفتن به صفحه اولیمپ ترید
@@ -159,11 +184,11 @@ async function setupBrowser() {
       } catch (e) {
         logger.warn(`⚠️ تلاش ${attempts} ناموفق: ${e.message}`);
         if (attempts < maxAttempts) {
-          logger.info('🔄 تغییر پروکسی و تلاش مجدد...');
+          logger.info('🔄 تغییر IP و تلاش مجدد...');
           try {
             await changeIP();
           } catch (e) {
-            logger.warn('⚠️ خطا در تغییر پروکسی، بدون پروکسی تلاش می‌کنیم...');
+            logger.warn('⚠️ خطا در تغییر IP، بدون پروکسی تلاش می‌کنیم...');
           }
           await new Promise(resolve => setTimeout(resolve, 5000)); // صبر 5 ثانیه
         }
