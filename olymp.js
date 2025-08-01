@@ -310,8 +310,42 @@ async function setupBrowser() {
     
     // مرحله 7: صبر برای لود dropdown و پیدا کردن input search
     logger.info('🔍 در حال پیدا کردن dropdown و input search...');
-    await page.waitForSelector('[data-test="assets-tabs-dropdown"]', { timeout: 15000 });
-    logger.info('✅ dropdown باز شد');
+    
+    // تلاش با selector های مختلف برای dropdown
+    const dropdownSelectors = [
+      '[data-test="assets-tabs-dropdown"]',
+      '[data-test="asset-select-dropdown"]',
+      '.css-1gbgf2c.e1su41ew0',
+      '[data-test="asset-select-button"]',
+      '[data-test="assets-tabs-tab"]',
+      '.css-e5732h.e1r2g46w0',
+      'div[role="button"]',
+      '[data-test*="dropdown"]',
+      '[data-test*="asset"]'
+    ];
+    
+    let dropdownFound = false;
+    for (const selector of dropdownSelectors) {
+      try {
+        logger.info(`🔍 تلاش برای dropdown با selector: ${selector}`);
+        const element = await page.$(selector);
+        if (element) {
+          logger.info(`✅ dropdown پیدا شد با selector: ${selector}`);
+          dropdownFound = true;
+          break;
+        }
+      } catch (e) {
+        logger.warn(`⚠️ selector ${selector} ناموفق: ${e.message}`);
+      }
+    }
+    
+    if (!dropdownFound) {
+      logger.warn('⚠️ dropdown پیدا نشد، ادامه می‌دهیم...');
+    }
+    
+    // صبر برای لود کامل صفحه
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    logger.info('⏳ صبر برای لود کامل صفحه...');
     
     return true;
   } catch (e) {
