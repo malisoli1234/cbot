@@ -50,38 +50,208 @@ const USE_PROXY = false; // process.env.USE_PROXY !== 'false'; // می‌تون�
 // let currentProxyIndex = 0;
 
 // تابع تغییر یوزر ایجنت (بدون پروکسی)
-async function changeIP() {
+async function changeIP(page = null) {
+  const targetPage = page || global.page;
+  if (!targetPage) {
+    throw new Error('Page object is required');
+  }
   try {
     logger.info('🌐 در حال تغییر یوزر ایجنت...');
     
-    // تغییر User-Agent
+    // تغییر User-Agent - لیست گسترده‌تر با رندوم‌سازی بهتر
     const userAgents = [
+      // Chrome Windows
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+      
+      // Chrome Mac
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
+      
+      // Chrome Linux
       'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+      
+      // Firefox Windows
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:119.0) Gecko/20100101 Firefox/119.0',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:118.0) Gecko/20100101 Firefox/118.0',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:117.0) Gecko/20100101 Firefox/117.0',
+      
+      // Firefox Mac
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:120.0) Gecko/20100101 Firefox/120.0',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:119.0) Gecko/20100101 Firefox/119.0',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:118.0) Gecko/20100101 Firefox/118.0',
+      
+      // Firefox Linux
+      'Mozilla/5.0 (X11; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0',
+      'Mozilla/5.0 (X11; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0',
+      'Mozilla/5.0 (X11; Linux x86_64; rv:119.0) Gecko/20100101 Firefox/119.0',
+      'Mozilla/5.0 (X11; Linux x86_64; rv:118.0) Gecko/20100101 Firefox/118.0',
+      
+      // Safari Mac
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.15',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Safari/605.1.15',
+      
+      // Edge Windows
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36 Edg/118.0.0.0',
+      
+      // Edge Mac
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0',
+      
+      // Opera Windows
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 OPR/107.0.0.0',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 OPR/106.0.0.0',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 OPR/105.0.0.0',
+      
+      // Opera Mac
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 OPR/107.0.0.0',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 OPR/106.0.0.0',
+      
+      // Mobile Chrome Android
+      'Mozilla/5.0 (Linux; Android 14; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Mobile Safari/537.36',
+      'Mozilla/5.0 (Linux; Android 13; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+      'Mozilla/5.0 (Linux; Android 12; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Mobile Safari/537.36',
+      'Mozilla/5.0 (Linux; Android 11; OnePlus 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+      
+      // Mobile Safari iOS
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Mobile/15E148 Safari/604.1',
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
+      'Mozilla/5.0 (iPad; CPU OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Mobile/15E148 Safari/604.1',
+      'Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
     ];
     
-    const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
-    await page.setUserAgent(randomUserAgent);
+    // رندوم‌سازی بهتر با استفاده از timestamp و Math.random
+    const timestamp = Date.now();
+    const randomSeed = (timestamp % 1000000) + Math.random();
+    const randomIndex = Math.floor(randomSeed % userAgents.length);
+    const randomUserAgent = userAgents[randomIndex];
     
-    // تغییر Viewport
+    await targetPage.setUserAgent(randomUserAgent);
+    
+    // تغییر Viewport - گسترده‌تر با رندوم‌سازی بهتر
     const viewports = [
-      { width: 1366, height: 768 },
+      // Desktop resolutions
       { width: 1920, height: 1080 },
-      { width: 1280, height: 720 },
+      { width: 1366, height: 768 },
       { width: 1440, height: 900 },
       { width: 1536, height: 864 },
+      { width: 1280, height: 720 },
+      { width: 1600, height: 900 },
+      { width: 1680, height: 1050 },
+      { width: 1920, height: 1200 },
+      { width: 2560, height: 1440 },
+      { width: 3840, height: 2160 },
+      
+      // Laptop resolutions
+      { width: 1366, height: 768 },
+      { width: 1440, height: 900 },
+      { width: 1600, height: 900 },
+      { width: 1920, height: 1080 },
+      { width: 2560, height: 1440 },
+      
+      // Tablet resolutions
+      { width: 768, height: 1024 },
+      { width: 1024, height: 768 },
+      { width: 820, height: 1180 },
+      { width: 1180, height: 820 },
+      
+      // Mobile resolutions
+      { width: 375, height: 667 },
+      { width: 414, height: 896 },
+      { width: 390, height: 844 },
+      { width: 428, height: 926 },
+      { width: 360, height: 640 },
+      { width: 412, height: 915 },
     ];
     
-    const randomViewport = viewports[Math.floor(Math.random() * viewports.length)];
-    await page.setViewport(randomViewport);
+    const viewportSeed = (timestamp % 1000000) + Math.random() * 1000;
+    const viewportIndex = Math.floor(viewportSeed % viewports.length);
+    const randomViewport = viewports[viewportIndex];
+    
+    await targetPage.setViewport(randomViewport);
+    
+    // تغییر زبان و locale به صورت رندوم
+    const languages = ['en-US', 'en-GB', 'en-CA', 'en-AU', 'de-DE', 'fr-FR', 'es-ES', 'it-IT', 'pt-BR', 'ja-JP', 'ko-KR', 'zh-CN', 'ar-SA', 'ru-RU'];
+    const randomLang = languages[Math.floor((timestamp % 1000000 + Math.random() * 1000) % languages.length)];
+    
+    await targetPage.setExtraHTTPHeaders({
+      'Accept-Language': `${randomLang},${randomLang.split('-')[0]};q=0.9,en;q=0.8`,
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+      'Accept-Encoding': 'gzip, deflate, br',
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache',
+    });
     
     logger.info(`✅ یوزر ایجنت تغییر کرد: ${randomUserAgent.substring(0, 50)}...`);
+    logger.info(`✅ Viewport تنظیم شد: ${randomViewport.width}x${randomViewport.height}`);
+    logger.info(`✅ زبان تنظیم شد: ${randomLang}`);
   } catch (e) {
     logger.warn(`⚠️ خطا در تغییر یوزر ایجنت: ${e.message}`);
+  }
+}
+
+// تابع شروع تغییر خودکار یوزر ایجنت
+function startAutoUserAgentChange() {
+  if (userAgentInterval) {
+    clearInterval(userAgentInterval);
+  }
+  
+  // تغییر یوزر ایجنت هر 5-15 دقیقه به صورت رندوم
+  const minInterval = 5 * 60 * 1000; // 5 دقیقه
+  const maxInterval = 15 * 60 * 1000; // 15 دقیقه
+  
+  const changeUserAgent = async () => {
+    try {
+      await changeIP();
+      
+      // تنظیم فاصله زمانی بعدی به صورت رندوم
+      const nextInterval = Math.floor(Math.random() * (maxInterval - minInterval)) + minInterval;
+      userAgentInterval = setTimeout(changeUserAgent, nextInterval);
+      
+      logger.info(`🔄 یوزر ایجنت بعدی در ${Math.round(nextInterval / 60000)} دقیقه تغییر خواهد کرد`);
+    } catch (e) {
+      logger.warn(`⚠️ خطا در تغییر خودکار یوزر ایجنت: ${e.message}`);
+      // تلاش مجدد بعد از 2 دقیقه
+      userAgentInterval = setTimeout(changeUserAgent, 2 * 60 * 1000);
+    }
+  };
+  
+  // شروع اولین تغییر
+  const firstInterval = Math.floor(Math.random() * (maxInterval - minInterval)) + minInterval;
+  userAgentInterval = setTimeout(changeUserAgent, firstInterval);
+  logger.info(`🔄 تغییر خودکار یوزر ایجنت شروع شد. اولین تغییر در ${Math.round(firstInterval / 60000)} دقیقه`);
+}
+
+// تابع توقف تغییر خودکار یوزر ایجنت
+function stopAutoUserAgentChange() {
+  if (userAgentInterval) {
+    clearInterval(userAgentInterval);
+    userAgentInterval = null;
+    logger.info('🛑 تغییر خودکار یوزر ایجنت متوقف شد');
   }
 }
 
@@ -94,6 +264,7 @@ const logger = {
 
 let browser = null;
 let page = null;
+let userAgentInterval = null; // برای تغییر خودکار یوزر ایجنت
 
 async function setupBrowser() {
   try {
@@ -363,6 +534,9 @@ async function setupBrowser() {
     await new Promise(resolve => setTimeout(resolve, 3000));
     logger.info('⏳ صبر برای لود کامل صفحه...');
     
+    // شروع تغییر خودکار یوزر ایجنت
+    startAutoUserAgentChange();
+    
     return true;
   } catch (e) {
     logger.error(`❌ خطا در راه‌اندازی مرورگر: ${e.message}`);
@@ -448,27 +622,31 @@ async function solveCaptcha() {
   }
 }
 
-async function searchCurrency(currencyName) {
+async function searchCurrency(currencyName, page = null) {
+  const targetPage = page || global.page;
+  if (!targetPage) {
+    throw new Error('Page object is required');
+  }
   const startTime = Date.now();
   try {
     logger.info(`🔍 در حال جستجوی ارز: ${currencyName}`);
     
     // صبر برای آماده شدن input search
-    await page.waitForSelector('input[data-test="Input"][name="asset-search-field"]', { timeout: 5000 });
+    await targetPage.waitForSelector('input[data-test="Input"][name="asset-search-field"]', { timeout: 5000 });
     
     // پاک کردن فیلد search و وارد کردن نام ارز
-    await page.evaluate(() => document.querySelector('input[data-test="Input"][name="asset-search-field"]').value = '');
-    await page.type('input[data-test="Input"][name="asset-search-field"]', currencyName);
+    await targetPage.evaluate(() => document.querySelector('input[data-test="Input"][name="asset-search-field"]').value = '');
+    await targetPage.type('input[data-test="Input"][name="asset-search-field"]', currencyName);
     logger.info('✅ نام ارز وارد شد');
 
     // صبر تا وقتی حداقل یه آیتم لود بشه یا تایم‌اوت
-    await page.waitForFunction(
+    await targetPage.waitForFunction(
       () => document.querySelector('[data-test="asset-item"]') !== null,
       { timeout: 5000 }
     );
 
     // استخراج و فرمت نتایج
-    const results = await page.evaluate(() => {
+    const results = await targetPage.evaluate(() => {
       const items = document.querySelectorAll('[data-test="asset-item"]');
       const results = [];
       
@@ -542,6 +720,92 @@ app.get('/api/test', async (req, res) => {
   });
 });
 
+// endpoint برای تغییر دستی یوزر ایجنت
+app.post('/api/change-user-agent', async (req, res) => {
+  try {
+    logger.info('🔄 درخواست تغییر دستی یوزر ایجنت...');
+    await changeIP();
+    res.json({ 
+      status: 'success', 
+      message: 'User agent changed successfully',
+      timestamp: new Date().toISOString()
+    });
+  } catch (e) {
+    logger.error(`❌ خطا در تغییر دستی یوزر ایجنت: ${e.message}`);
+    res.status(500).json({ 
+      status: 'error', 
+      message: `Failed to change user agent: ${e.message}`,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// endpoint برای شروع تغییر خودکار یوزر ایجنت
+app.post('/api/start-auto-user-agent', async (req, res) => {
+  try {
+    logger.info('🔄 درخواست شروع تغییر خودکار یوزر ایجنت...');
+    startAutoUserAgentChange();
+    res.json({ 
+      status: 'success', 
+      message: 'Auto user agent change started',
+      timestamp: new Date().toISOString()
+    });
+  } catch (e) {
+    logger.error(`❌ خطا در شروع تغییر خودکار یوزر ایجنت: ${e.message}`);
+    res.status(500).json({ 
+      status: 'error', 
+      message: `Failed to start auto user agent change: ${e.message}`,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// endpoint برای توقف تغییر خودکار یوزر ایجنت
+app.post('/api/stop-auto-user-agent', async (req, res) => {
+  try {
+    logger.info('🛑 درخواست توقف تغییر خودکار یوزر ایجنت...');
+    stopAutoUserAgentChange();
+    res.json({ 
+      status: 'success', 
+      message: 'Auto user agent change stopped',
+      timestamp: new Date().toISOString()
+    });
+  } catch (e) {
+    logger.error(`❌ خطا در توقف تغییر خودکار یوزر ایجنت: ${e.message}`);
+    res.status(500).json({ 
+      status: 'error', 
+      message: `Failed to stop auto user agent change: ${e.message}`,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// endpoint برای دریافت وضعیت فعلی یوزر ایجنت
+app.get('/api/user-agent-status', async (req, res) => {
+  try {
+    const userAgent = await page.evaluate(() => navigator.userAgent);
+    const viewport = await page.evaluate(() => ({
+      width: window.innerWidth,
+      height: window.innerHeight
+    }));
+    
+    res.json({ 
+      status: 'success', 
+      userAgent: userAgent,
+      viewport: viewport,
+      autoChangeActive: userAgentInterval !== null,
+      timestamp: new Date().toISOString()
+    });
+  } catch (e) {
+    logger.error(`❌ خطا در دریافت وضعیت یوزر ایجنت: ${e.message}`);
+    res.status(500).json({ 
+      status: 'error', 
+      message: `Failed to get user agent status: ${e.message}`,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 async function main() {
   if (!(await setupBrowser())) {
     logger.error('❌ راه‌اندازی مرورگر ناموفق بود. برنامه متوقف می‌شود.');
@@ -556,6 +820,10 @@ async function main() {
   // مدیریت توقف برنامه
   process.on('SIGINT', async () => {
     logger.info('🛑 برنامه توسط کاربر متوقف شد.');
+    
+    // توقف تغییر خودکار یوزر ایجنت
+    stopAutoUserAgentChange();
+    
     if (browser) {
       logger.info('🚫 بستن مرورگر...');
       await browser.close();
@@ -564,7 +832,23 @@ async function main() {
   });
 }
 
-main().catch(e => {
-  logger.error(`❌ خطای کلی در اجرای برنامه: ${e.message}`);
-  process.exit(1);
-}); 
+// Export توابع برای تست
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    changeIP,
+    searchCurrency,
+    solveCaptcha,
+    setupBrowser,
+    startAutoUserAgentChange,
+    stopAutoUserAgentChange,
+    logger
+  };
+}
+
+// فقط در صورت اجرای مستقیم فایل
+if (require.main === module) {
+  main().catch(e => {
+    logger.error(`❌ خطای کلی در اجرای برنامه: ${e.message}`);
+    process.exit(1);
+  });
+} 
