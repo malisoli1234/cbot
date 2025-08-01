@@ -436,12 +436,9 @@ async function setupBrowser() {
       'div[data-test="login-tab"]',
       '[data-test="auth-tab-item"]',
       '[data-test="login-tab"]',
-      'button:contains("Login")',
-      'button:contains("Sign In")',
-      'a:contains("Login")',
-      'a:contains("Sign In")',
-      'div:contains("Login")',
-      'div:contains("Sign In")'
+      'button',
+      'a',
+      'div[role="button"]'
     ];
     
     let loginClicked = false;
@@ -501,14 +498,75 @@ async function setupBrowser() {
     
     // مرحله 4: وارد کردن یوزرنیم
     logger.info('📝 در حال وارد کردن یوزرنیم...');
-    await page.waitForSelector('input[data-test="Input"][name="email"]', { timeout: 30000 });
-    await page.type('input[data-test="Input"][name="email"]', 'mmrrssoollii@gmail10p.com');
+    
+    // تلاش با selector های مختلف برای input email
+    const emailSelectors = [
+      'input[data-test="Input"][name="email"]',
+      'input[name="email"]',
+      'input[type="email"]',
+      'input[data-test="email"]',
+      'input[data-test="Input"][name="username"]',
+      'input[name="username"]',
+      'input[data-test="username"]',
+      'input[placeholder*="email"]',
+      'input[placeholder*="Email"]',
+      'input[placeholder*="username"]',
+      'input[placeholder*="Username"]'
+    ];
+    
+    let emailInput = null;
+    for (const selector of emailSelectors) {
+      try {
+        logger.info(`🔍 تلاش برای input email با selector: ${selector}`);
+        emailInput = await page.$(selector);
+        if (emailInput) {
+          logger.info(`✅ input email پیدا شد با selector: ${selector}`);
+          break;
+        }
+      } catch (e) {
+        logger.warn(`⚠️ selector ${selector} ناموفق: ${e.message}`);
+      }
+    }
+    
+    if (!emailInput) {
+      throw new Error('Input email پیدا نشد');
+    }
+    
+    await emailInput.type('mmrrssoollii@gmail10p.com');
     logger.info('✅ یوزرنیم وارد شد');
     
     // مرحله 5: وارد کردن پسورد
     logger.info('🔐 در حال وارد کردن پسورد...');
-    await page.waitForSelector('input[data-test="Input"][name="password"]', { timeout: 30000 });
-    await page.type('input[data-test="Input"][name="password"]', 'mmm123456789');
+    
+    // تلاش با selector های مختلف برای input password
+    const passwordSelectors = [
+      'input[data-test="Input"][name="password"]',
+      'input[name="password"]',
+      'input[type="password"]',
+      'input[data-test="password"]',
+      'input[placeholder*="password"]',
+      'input[placeholder*="Password"]'
+    ];
+    
+    let passwordInput = null;
+    for (const selector of passwordSelectors) {
+      try {
+        logger.info(`🔍 تلاش برای input password با selector: ${selector}`);
+        passwordInput = await page.$(selector);
+        if (passwordInput) {
+          logger.info(`✅ input password پیدا شد با selector: ${selector}`);
+          break;
+        }
+      } catch (e) {
+        logger.warn(`⚠️ selector ${selector} ناموفق: ${e.message}`);
+      }
+    }
+    
+    if (!passwordInput) {
+      throw new Error('Input password پیدا نشد');
+    }
+    
+    await passwordInput.type('mmm123456789');
     logger.info('✅ پسورد وارد شد');
     
     // صبر برای لود کامل فرم
