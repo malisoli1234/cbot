@@ -9,7 +9,7 @@ app.use(express.json());
 puppeteerExtra.use(StealthPlugin());
 puppeteerExtra.use(RecaptchaPlugin());
 
-// تنظیمات پروکسی
+// تنظیمات پروکسی - فعال
 const USE_PROXY = process.env.USE_PROXY !== 'false'; // می‌تونید با USE_PROXY=false اجرا کنید
 const proxyList = [
   // پروکسی‌های HTTP از UAE
