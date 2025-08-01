@@ -1,0 +1,10 @@
+[33m203da18[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Update telegram bot to use new channel IDs and message format
+[33m894ac32[m Clean up project - remove unnecessary files
+[33m443ec4e[m Update currency automation system with P.Finance and Telegram bot
+[33m314df3f[m Fix Chrome timeout issues and simplify browser configuration
+[33m748d3a9[m Add complete Olymp Trade module with internal API server
+[33m48e6225[m Reduce Puppeteer network logging by adding silent launch arguments
+[33m268871e[m Add Olymp Trade site with homepage setup and detailed logging
+[33m2cd1f5f[m Fix Olymp Trade URL and add detailed logging for connection debugging
+[33m6d501ac[m Add Olymp Trade site support - new scraping module for olymp.com platform
+[33m8da98ed[m Clean up project - remove test files and unused scripts

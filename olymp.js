@@ -9,16 +9,41 @@ app.use(express.json());
 puppeteerExtra.use(StealthPlugin());
 puppeteerExtra.use(RecaptchaPlugin());
 
-// لیست پروکسی‌ها
+// لیست پروکسی‌های واقعی از spys.one
 const proxyList = [
-  // پروکسی‌های رایگان (مثال)
-  'http://proxy1.example.com:8080',
-  'http://proxy2.example.com:8080',
-  'socks5://proxy3.example.com:1080',
-  'socks4://proxy4.example.com:1080',
-  // پروکسی‌های پولی (اگر دارید)
-  // 'http://username:password@proxy5.example.com:8080',
-  // 'socks5://username:password@proxy6.example.com:1080',
+  // پروکسی‌های HTTP از UAE
+  'http://83.111.75.116:8080',
+  'http://91.73.223.206:8080',
+  'http://86.98.212.37:8080',
+  'http://94.200.195.220:8080',
+  'http://86.98.138.40:8080',
+  'http://89.36.162.121:8080',
+  'http://94.204.235.128:8080',
+  'http://151.243.213.130:8080',
+  'http://2.49.191.123:8080',
+  'http://212.23.217.71:8080',
+  'http://86.98.222.224:8080',
+  'http://31.57.228.216:8080',
+  'http://89.36.162.76:8080',
+  'http://2.50.20.72:8080',
+  'http://2.49.54.61:8080',
+  'http://89.36.162.75:8080',
+  'http://2.49.68.140:8080',
+  'http://139.185.42.86:8080',
+  'http://2.50.143.164:8080',
+  
+  // پروکسی‌های HTTPS از UAE
+  'https://129.151.130.247:8080',
+  'https://93.127.180.78:8080',
+  'https://31.58.51.90:8080',
+  
+  // پروکسی‌های SOCKS5 از UAE
+  'socks5://165.154.241.205:1080',
+  'socks5://85.8.184.212:1080',
+  'socks5://185.198.59.237:1080',
+  'socks5://185.45.194.124:1080',
+  'socks5://85.209.9.247:1080',
+  'socks5://38.180.27.230:1080',
 ];
 
 let currentProxyIndex = 0;
@@ -120,7 +145,12 @@ async function setupBrowser() {
     });
     await page.setViewport({ width: 1280, height: 720 });
     
-    // مرحله 1: رفتن به صفحه اولیمپ ترید
+    // مرحله 1: تغییر پروکسی قبل از شروع
+    logger.info('🔄 در حال تغییر پروکسی...');
+    await changeIP();
+    logger.info('✅ پروکسی تغییر کرد');
+    
+    // مرحله 2: رفتن به صفحه اولیمپ ترید
     logger.info('🌐 در حال رفتن به صفحه اولیمپ ترید...');
     await page.goto('https://olymptrade.com/platform', { waitUntil: 'domcontentloaded', timeout: 30000 });
     logger.info('✅ صفحه اولیمپ ترید لود شد');
@@ -129,7 +159,7 @@ async function setupBrowser() {
     await new Promise(resolve => setTimeout(resolve, 3000));
     logger.info('⏳ صبر برای لود کامل صفحه...');
     
-    // مرحله 2: کلیک روی دکمه Login
+    // مرحله 3: کلیک روی دکمه Login
     logger.info('🔍 در حال پیدا کردن دکمه Login...');
     await page.waitForSelector('button[data-test="auth-tab-item"]', { timeout: 15000 });
     await page.click('button[data-test="auth-tab-item"]');
@@ -139,13 +169,13 @@ async function setupBrowser() {
     await new Promise(resolve => setTimeout(resolve, 2000));
     logger.info('⏳ صبر برای لود فرم لاگین...');
     
-    // مرحله 3: وارد کردن یوزرنیم
+    // مرحله 4: وارد کردن یوزرنیم
     logger.info('📝 در حال وارد کردن یوزرنیم...');
     await page.waitForSelector('input[data-test="Input"][name="email"]', { timeout: 15000 });
     await page.type('input[data-test="Input"][name="email"]', 'mmrrssoollii@gmail10p.com');
     logger.info('✅ یوزرنیم وارد شد');
     
-    // مرحله 4: وارد کردن پسورد
+    // مرحله 5: وارد کردن پسورد
     logger.info('🔐 در حال وارد کردن پسورد...');
     await page.waitForSelector('input[data-test="Input"][name="password"]', { timeout: 15000 });
     await page.type('input[data-test="Input"][name="password"]', 'mmm123456789');
@@ -154,7 +184,7 @@ async function setupBrowser() {
     // صبر برای لود کامل فرم
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // مرحله 5: کلیک روی دکمه Log In
+    // مرحله 6: کلیک روی دکمه Log In
     logger.info('🔍 در حال پیدا کردن دکمه Log In...');
     await page.waitForSelector('button[data-test="form-signin-button"]', { timeout: 15000 });
     await page.click('button[data-test="form-signin-button"]');
