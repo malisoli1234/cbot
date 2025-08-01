@@ -832,23 +832,7 @@ async function main() {
   });
 }
 
-// Export توابع برای تست
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    changeIP,
-    searchCurrency,
-    solveCaptcha,
-    setupBrowser,
-    startAutoUserAgentChange,
-    stopAutoUserAgentChange,
-    logger
-  };
-}
-
-// فقط در صورت اجرای مستقیم فایل
-if (require.main === module) {
-  main().catch(e => {
-    logger.error(`❌ خطای کلی در اجرای برنامه: ${e.message}`);
-    process.exit(1);
-  });
-} 
+main().catch(e => {
+  logger.error(`❌ خطای کلی در اجرای برنامه: ${e.message}`);
+  process.exit(1);
+}); 
