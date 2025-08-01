@@ -13,9 +13,6 @@ try {
 }
 const MIN_PAYOUT = config.minPayout || 70; // پیش‌فرض 70 اگه تعریف نشده باشه
 
-// URL پایه پلتفرم ترید (اینو با URL واقعی جایگزین کن)
-const TRADING_PLATFORM_URL = 'https://trade.example.com';
-
 // تنظیم لاگ‌گیری
 const logStream = fs.createWriteStream('bot.log', { flags: 'a' });
 const logger = {
@@ -32,8 +29,9 @@ const logger = {
 };
 
 // توکن بات و آیدی چنل
-const TELEGRAM_BOT_TOKEN = '7554355277:AAGFB8QuBEp9BqeZqD3xyVjZVlpzbRQ3xEg';
-const CHANNEL_ID = '-1002498428726';
+const TELEGRAM_BOT_TOKEN = config.telegramBotToken;
+const INPUT_CHANNEL_ID = config.inputChannelId;
+const OUTPUT_CHANNEL_ID = config.outputChannelId;
 
 // تنظیم API های سایت‌ها
 const SITE_APIS = {
@@ -52,8 +50,8 @@ const queue = async.queue(async (task, callback) => {
     if (!match) {
       logger.info(`⚠️ پیام نامعتبر نادیده گرفته شد: ${messageText}`);
       try {
-        await bot.deleteMessage(CHANNEL_ID, messageId);
-        logger.info(`🗑️ پیام حذف شد از کانال: ${messageText} (نامعتبر)`);
+        await bot.deleteMessage(INPUT_CHANNEL_ID, messageId);
+        logger.info(`🗑️ پیام حذف شد از کانال ورودی: ${messageText} (نامعتبر)`);
       } catch (e) {
         logger.error(`❌ خطا در حذف پیام ${messageText}: ${e.message}`);
       }
@@ -102,8 +100,8 @@ const queue = async.queue(async (task, callback) => {
         if (payout === 'N/A') {
           logger.info(`🚫 پیام حذف شد: ${currencyName} به دلیل payout=N/A`);
           try {
-            await bot.deleteMessage(CHANNEL_ID, messageId);
-            logger.info(`🗑️ پیام حذف شد از کانال: ${messageText} (payout=N/A)`);
+            await bot.deleteMessage(INPUT_CHANNEL_ID, messageId);
+            logger.info(`🗑️ پیام حذف شد از کانال ورودی: ${messageText} (payout=N/A)`);
           } catch (e) {
             logger.error(`❌ خطا در حذف پیام ${messageText}: ${e.message}`);
           }
@@ -115,8 +113,8 @@ const queue = async.queue(async (task, callback) => {
         if (isNaN(payoutNum) || payoutNum < MIN_PAYOUT) {
           logger.info(`🚫 پیام حذف شد: ${currencyName} به دلیل payout=${payout} کمتر از ${MIN_PAYOUT}`);
           try {
-            await bot.deleteMessage(CHANNEL_ID, messageId);
-            logger.info(`🗑️ پیام حذف شد از کانال: ${messageText} (payout=${payout} کمتر از ${MIN_PAYOUT})`);
+            await bot.deleteMessage(INPUT_CHANNEL_ID, messageId);
+            logger.info(`🗑️ پیام حذف شد از کانال ورودی: ${messageText} (payout=${payout} کمتر از ${MIN_PAYOUT})`);
           } catch (e) {
             logger.error(`❌ خطا در حذف پیام ${messageText}: ${e.message}`);
           }
@@ -124,22 +122,18 @@ const queue = async.queue(async (task, callback) => {
           return;
         }
 
-        const reply = `[${currencyName}](${TRADING_PLATFORM_URL}?symbol=${currencyName}) ${messageText.replace(/^(PO|OL|ORG):\s*/, '').trim()} 🟢 ${payout}% (${bestResult.sitePrefix})`;
+        const reply = `${messageText.replace(/^(PO|OL|ORG):\s*/, '').trim()} 🟢 ${payout}`;
         try {
-          await bot.editMessageText(reply, {
-            chat_id: CHANNEL_ID,
-            message_id: messageId,
-            parse_mode: 'Markdown',
-          });
-          logger.info(`✏️ پیام ویرایش شد در کانال: ${reply}`);
+          await bot.sendMessage(OUTPUT_CHANNEL_ID, reply);
+          logger.info(`📤 پیام ارسال شد به کانال خروجی: ${reply}`);
         } catch (e) {
-          logger.error(`❌ خطا در ویرایش پیام ${messageText}: ${e.message}`);
+          logger.error(`❌ خطا در ارسال پیام ${messageText}: ${e.message}`);
         }
       } else {
         logger.info(`🚫 پیام حذف شد: ${currencyName} در هیچ سایتی پیدا نشد`);
         try {
-          await bot.deleteMessage(CHANNEL_ID, messageId);
-          logger.info(`🗑️ پیام حذف شد از کانال: ${messageText} (پیدا نشد)`);
+          await bot.deleteMessage(INPUT_CHANNEL_ID, messageId);
+          logger.info(`🗑️ پیام حذف شد از کانال ورودی: ${messageText} (پیدا نشد)`);
         } catch (e) {
           logger.error(`❌ خطا در حذف پیام ${messageText}: ${e.message}`);
         }
@@ -163,8 +157,8 @@ const queue = async.queue(async (task, callback) => {
         if (payout === 'N/A') {
           logger.info(`🚫 پیام حذف شد: ${currencyName} به دلیل payout=N/A`);
           try {
-            await bot.deleteMessage(CHANNEL_ID, messageId);
-            logger.info(`🗑️ پیام حذف شد از کانال: ${messageText} (payout=N/A)`);
+            await bot.deleteMessage(INPUT_CHANNEL_ID, messageId);
+            logger.info(`🗑️ پیام حذف شد از کانال ورودی: ${messageText} (payout=N/A)`);
           } catch (e) {
             logger.error(`❌ خطا در حذف پیام ${messageText}: ${e.message}`);
           }
@@ -176,8 +170,8 @@ const queue = async.queue(async (task, callback) => {
         if (isNaN(payoutNum) || payoutNum < MIN_PAYOUT) {
           logger.info(`🚫 پیام حذف شد: ${currencyName} به دلیل payout=${payout} کمتر از ${MIN_PAYOUT}`);
           try {
-            await bot.deleteMessage(CHANNEL_ID, messageId);
-            logger.info(`🗑️ پیام حذف شد از کانال: ${messageText} (payout=${payout} کمتر از ${MIN_PAYOUT})`);
+            await bot.deleteMessage(INPUT_CHANNEL_ID, messageId);
+            logger.info(`🗑️ پیام حذف شد از کانال ورودی: ${messageText} (payout=${payout} کمتر از ${MIN_PAYOUT})`);
           } catch (e) {
             logger.error(`❌ خطا در حذف پیام ${messageText}: ${e.message}`);
           }
@@ -185,22 +179,18 @@ const queue = async.queue(async (task, callback) => {
           return;
         }
 
-        const reply = `[${currencyName}](${TRADING_PLATFORM_URL}?symbol=${currencyName}) ${messageText.replace(/^(PO|OL|ORG):\s*/, '').trim()} 🟢 ${payout}% (${prefix})`;
+        const reply = `${messageText.replace(/^(PO|OL|ORG):\s*/, '').trim()} 🟢 ${payout}`;
         try {
-          await bot.editMessageText(reply, {
-            chat_id: CHANNEL_ID,
-            message_id: messageId,
-            parse_mode: 'Markdown',
-          });
-          logger.info(`✏️ پیام ویرایش شد در کانال: ${reply}`);
+          await bot.sendMessage(OUTPUT_CHANNEL_ID, reply);
+          logger.info(`📤 پیام ارسال شد به کانال خروجی: ${reply}`);
         } catch (e) {
-          logger.error(`❌ خطا در ویرایش پیام ${messageText}: ${e.message}`);
+          logger.error(`❌ خطا در ارسال پیام ${messageText}: ${e.message}`);
         }
       } else {
         logger.info(`🚫 پیام حذف شد: ${currencyName} پیدا نشد`);
         try {
-          await bot.deleteMessage(CHANNEL_ID, messageId);
-          logger.info(`🗑️ پیام حذف شد از کانال: ${messageText} (پیدا نشد)`);
+          await bot.deleteMessage(INPUT_CHANNEL_ID, messageId);
+          logger.info(`🗑️ پیام حذف شد از کانال ورودی: ${messageText} (پیدا نشد)`);
         } catch (e) {
           logger.error(`❌ خطا در حذف پیام ${messageText}: ${e.message}`);
         }
@@ -209,8 +199,8 @@ const queue = async.queue(async (task, callback) => {
   } catch (e) {
     logger.error(`❌ خطا در پردازش پیام ${currencyName}: ${e.message}`);
     try {
-      await bot.deleteMessage(CHANNEL_ID, task.messageId);
-      logger.info(`🗑️ پیام حذف شد از کانال: ${task.messageText} (خطای پردازش)`);
+      await bot.deleteMessage(INPUT_CHANNEL_ID, task.messageId);
+      logger.info(`🗑️ پیام حذف شد از کانال ورودی: ${task.messageText} (خطای پردازش)`);
     } catch (deleteError) {
       logger.error(`❌ خطا در حذف پیام ${task.messageText}: ${deleteError.message}`);
     }
@@ -252,12 +242,12 @@ async function fetchWithRetry(url, data, retries = 2, timeout = 3000) {
 // مدیریت پیام‌های کانال
 bot.on('channel_post', async (msg) => {
   // فقط پیام‌های متنی بعد از شروع ربات
-  if (msg.date * 1000 >= startTime.getTime() && msg.chat.id.toString() === CHANNEL_ID) {
+  if (msg.date * 1000 >= startTime.getTime() && msg.chat.id.toString() === INPUT_CHANNEL_ID) {
     if (!msg.text) {
       logger.info(`⚠️ پیام غیرمتنی نادیده گرفته شد: ${JSON.stringify(msg)}`);
       try {
-        await bot.deleteMessage(CHANNEL_ID, msg.message_id);
-        logger.info(`🗑️ پیام غیرمتنی حذف شد از کانال: ${JSON.stringify(msg)}`);
+        await bot.deleteMessage(INPUT_CHANNEL_ID, msg.message_id);
+        logger.info(`🗑️ پیام غیرمتنی حذف شد از کانال ورودی: ${JSON.stringify(msg)}`);
       } catch (e) {
         logger.error(`❌ خطا در حذف پیام غیرمتنی: ${e.message}`);
       }
@@ -265,7 +255,7 @@ bot.on('channel_post', async (msg) => {
     }
 
     const messageText = msg.text.trim();
-    logger.info(`📩 پیام جدید از چنل: ${messageText}`);
+    logger.info(`📩 پیام جدید از چنل ورودی: ${messageText}`);
 
     // اضافه کردن به صف
     queue.push({ messageText, messageId: msg.message_id });
