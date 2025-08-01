@@ -1,10 +1,12 @@
 const puppeteerExtra = require('puppeteer-extra');
 const RecaptchaPlugin = require('puppeteer-extra-plugin-recaptcha');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const express = require('express');
 const app = express();
 app.use(express.json());
 
-// تنظیم reCAPTCHA plugin
+// تنظیم plugins
+puppeteerExtra.use(StealthPlugin());
 puppeteerExtra.use(RecaptchaPlugin());
 
 // تنظیم لاگ‌گیری
@@ -31,7 +33,11 @@ async function setupBrowser() {
         '--disable-accelerated-2d-canvas',
         '--blink-settings=imagesEnabled=false',
         '--disable-extensions',
-        '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
+        '--disable-blink-features=AutomationControlled',
+        '--disable-features=VizDisplayCompositor',
+        '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        // پروکسی (اختیاری - اگر پروکسی دارید)
+        // '--proxy-server=http://your-proxy:port',
       ],
     });
     page = await browser.newPage();
@@ -160,6 +166,13 @@ async function solveCaptcha() {
   try {
     logger.info('🔍 در حال حل کپچا...');
     
+    // پنهان کردن webdriver
+    await page.evaluateOnNewDocument(() => {
+      Object.defineProperty(navigator, 'webdriver', {
+        get: () => undefined,
+      });
+    });
+    
     // استفاده از puppeteer-extra-plugin-recaptcha
     const recaptchaExists = await page.$('iframe[src*="recaptcha"], .g-recaptcha');
     const hcaptchaExists = await page.$('iframe[src*="hcaptcha"], .h-captcha');
@@ -168,30 +181,47 @@ async function solveCaptcha() {
     if (recaptchaExists) {
       logger.info('🔍 تشخیص reCAPTCHA - تلاش برای حل خودکار...');
       try {
+        // تلاش برای حل reCAPTCHA با روش‌های مختلف
         await page.solveRecaptchas();
         logger.info('✅ reCAPTCHA حل شد');
       } catch (e) {
-        logger.warn('⚠️ حل خودکار reCAPTCHA ناموفق - منتظر حل دستی...');
+        logger.warn('⚠️ حل خودکار reCAPTCHA ناموفق - تلاش با روش دستی...');
+        
+        // تلاش برای حل دستی با کلیک روی checkbox
+        try {
+          const frame = page.frames().find(frame => frame.url().includes('recaptcha'));
+          if (frame) {
+            const checkbox = await frame.$('.recaptcha-checkbox-border');
+            if (checkbox) {
+              await checkbox.click();
+              logger.info('✅ reCAPTCHA checkbox کلیک شد');
+            }
+          }
+        } catch (clickError) {
+          logger.warn('⚠️ کلیک روی checkbox ناموفق');
+        }
+        
+        // صبر برای حل
         await page.waitForFunction(() => {
           return !document.querySelector('iframe[src*="recaptcha"]') || 
                  document.querySelector('.g-recaptcha-response')?.value;
-        }, { timeout: 60000 });
+        }, { timeout: 90000 }); // 90 ثانیه صبر
       }
     } else if (hcaptchaExists) {
       logger.info('🔍 تشخیص hCaptcha - منتظر حل دستی...');
       await page.waitForFunction(() => {
         return !document.querySelector('iframe[src*="hcaptcha"]') || 
                document.querySelector('.h-captcha-response')?.value;
-      }, { timeout: 60000 });
+      }, { timeout: 90000 });
     } else if (turnstileExists) {
       logger.info('🔍 تشخیص Turnstile - منتظر حل دستی...');
       await page.waitForFunction(() => {
         return !document.querySelector('iframe[src*="turnstile"]') || 
                document.querySelector('.cf-turnstile-response')?.value;
-      }, { timeout: 60000 });
+      }, { timeout: 90000 });
     } else {
       logger.info('⏳ منتظر حل دستی کپچا...');
-      await new Promise(resolve => setTimeout(resolve, 30000));
+      await new Promise(resolve => setTimeout(resolve, 60000)); // 60 ثانیه صبر
     }
     
     logger.info('✅ کپچا حل شد');
