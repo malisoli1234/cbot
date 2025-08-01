@@ -9,29 +9,67 @@ app.use(express.json());
 puppeteerExtra.use(StealthPlugin());
 puppeteerExtra.use(RecaptchaPlugin());
 
-// تابع تغییر IP (اختیاری)
+// لیست پروکسی‌ها
+const proxyList = [
+  // پروکسی‌های رایگان (مثال)
+  'http://proxy1.example.com:8080',
+  'http://proxy2.example.com:8080',
+  'socks5://proxy3.example.com:1080',
+  'socks4://proxy4.example.com:1080',
+  // پروکسی‌های پولی (اگر دارید)
+  // 'http://username:password@proxy5.example.com:8080',
+  // 'socks5://username:password@proxy6.example.com:1080',
+];
+
+let currentProxyIndex = 0;
+
+// تابع تغییر IP با پروکسی
 async function changeIP() {
   try {
     logger.info('🌐 در حال تغییر IP...');
     
-    // روش 1: استفاده از VPN (اگر VPN دارید)
-    // await page.evaluate(() => {
-    //   // تغییر IP با VPN
-    // });
-    
-    // روش 2: استفاده از پروکسی
-    // await page.authenticate({
-    //   username: 'proxy_user',
-    //   password: 'proxy_pass'
-    // });
-    
-    // روش 3: تغییر User-Agent
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36');
-    
-    // روش 4: تغییر Viewport
-    await page.setViewport({ width: 1366, height: 768 });
-    
-    logger.info('✅ IP تغییر کرد');
+    if (proxyList.length > 0) {
+      // انتخاب پروکسی بعدی
+      const proxy = proxyList[currentProxyIndex];
+      currentProxyIndex = (currentProxyIndex + 1) % proxyList.length;
+      
+      logger.info(`🔄 استفاده از پروکسی: ${proxy}`);
+      
+      // تغییر پروکسی در مرورگر
+      await page.evaluateOnNewDocument(() => {
+        // تنظیم پروکسی
+        window.proxyConfig = {
+          server: proxy,
+          bypass: 'localhost,127.0.0.1'
+        };
+      });
+      
+      // تغییر User-Agent
+      const userAgents = [
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+      ];
+      
+      const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
+      await page.setUserAgent(randomUserAgent);
+      
+      // تغییر Viewport
+      const viewports = [
+        { width: 1366, height: 768 },
+        { width: 1920, height: 1080 },
+        { width: 1280, height: 720 },
+        { width: 1440, height: 900 },
+      ];
+      
+      const randomViewport = viewports[Math.floor(Math.random() * viewports.length)];
+      await page.setViewport(randomViewport);
+      
+      logger.info(`✅ IP تغییر کرد - User-Agent: ${randomUserAgent.substring(0, 50)}...`);
+    } else {
+      logger.warn('⚠️ هیچ پروکسی‌ای تعریف نشده');
+    }
   } catch (e) {
     logger.warn(`⚠️ خطا در تغییر IP: ${e.message}`);
   }
@@ -50,6 +88,9 @@ let page = null;
 async function setupBrowser() {
   try {
     logger.info('راه‌اندازی مرورگر...');
+    // انتخاب پروکسی اولیه
+    const initialProxy = proxyList.length > 0 ? proxyList[0] : null;
+    
     browser = await puppeteerExtra.launch({
       headless: 'new',
       executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
@@ -64,12 +105,8 @@ async function setupBrowser() {
         '--disable-blink-features=AutomationControlled',
         '--disable-features=VizDisplayCompositor',
         '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        // پروکسی‌های رایگان (اختیاری)
-        // '--proxy-server=socks5://127.0.0.1:1080',
-        // '--proxy-server=http://proxy.example.com:8080',
-        // '--proxy-server=socks4://proxy.example.com:1080',
-        // VPN (اگر VPN دارید)
-        // '--proxy-server=socks5://127.0.0.1:1080',
+        // پروکسی (اگر تعریف شده باشد)
+        ...(initialProxy ? [`--proxy-server=${initialProxy}`] : []),
       ],
     });
     page = await browser.newPage();
