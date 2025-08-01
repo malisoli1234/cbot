@@ -464,7 +464,6 @@ async function searchCurrency(currencyName) {
       '.eyxVtLklPL._0-iVLEdBew._1ZFlsEbrKt',
       'input[autocomplete="off"]',
       'input[type="text"]',
-      'input[data-test="Input"][name="asset-search-field"]',
       'input[placeholder*="Search"]',
       'input[placeholder*="search"]',
       'input[placeholder*="جستجو"]',
@@ -553,13 +552,18 @@ async function searchCurrency(currencyName) {
           const ticker = item.getAttribute('data-ticker');
           const icon = item.querySelector('img[data-test^="asset-item-icon-"]')?.src;
           
-          // پیدا کردن درصد payout (اگر وجود داشته باشد)
-          const payoutElement = item.querySelector('[data-test*="payout"], [data-test*="percentage"]');
+          // پیدا کردن درصد payout از data-test="asset-item-value"
+          const payoutElement = item.querySelector('[data-test="asset-item-value"]');
           const payout = payoutElement ? payoutElement.textContent.trim() : 'N/A';
+          
+          // پیدا کردن عنوان ارز
+          const titleElement = item.querySelector('[data-test^="asset-item-title-"]');
+          const title = titleElement ? titleElement.textContent.trim() : ticker;
           
           if (ticker) {
             results.push({
               currency: ticker,
+              title: title,
               payout: payout,
               icon: icon
             });
