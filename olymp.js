@@ -9,103 +9,79 @@ app.use(express.json());
 puppeteerExtra.use(StealthPlugin());
 puppeteerExtra.use(RecaptchaPlugin());
 
-// تنظیمات پروکسی - فعال
-const USE_PROXY = process.env.USE_PROXY !== 'false'; // می‌تونید با USE_PROXY=false اجرا کنید
-const proxyList = [
-  // پروکسی‌های HTTP از UAE
-  'http://83.111.75.116:8080',
-  'http://91.73.223.206:8080',
-  'http://86.98.212.37:8080',
-  'http://94.200.195.220:8080',
-  'http://86.98.138.40:8080',
-  'http://89.36.162.121:8080',
-  'http://94.204.235.128:8080',
-  'http://151.243.213.130:8080',
-  'http://2.49.191.123:8080',
-  'http://212.23.217.71:8080',
-  'http://86.98.222.224:8080',
-  'http://31.57.228.216:8080',
-  'http://89.36.162.76:8080',
-  'http://2.50.20.72:8080',
-  'http://2.49.54.61:8080',
-  'http://89.36.162.75:8080',
-  'http://2.49.68.140:8080',
-  'http://139.185.42.86:8080',
-  'http://2.50.143.164:8080',
-  
-  // پروکسی‌های HTTPS از UAE
-  'https://129.151.130.247:8080',
-  'https://93.127.180.78:8080',
-  'https://31.58.51.90:8080',
-  
-  // پروکسی‌های SOCKS5 از UAE
-  'socks5://165.154.241.205:1080',
-  'socks5://85.8.184.212:1080',
-  'socks5://185.198.59.237:1080',
-  'socks5://185.45.194.124:1080',
-  'socks5://85.209.9.247:1080',
-  'socks5://38.180.27.230:1080',
-];
+// تنظیمات پروکسی - غیرفعال
+const USE_PROXY = false; // process.env.USE_PROXY !== 'false'; // می‌تونید با USE_PROXY=false اجرا کنید
+// const proxyList = [
+//   // پروکسی‌های HTTP از UAE
+//   'http://83.111.75.116:8080',
+//   'http://91.73.223.206:8080',
+//   'http://86.98.212.37:8080',
+//   'http://94.200.195.220:8080',
+//   'http://86.98.138.40:8080',
+//   'http://89.36.162.121:8080',
+//   'http://94.204.235.128:8080',
+//   'http://151.243.213.130:8080',
+//   'http://2.49.191.123:8080',
+//   'http://212.23.217.71:8080',
+//   'http://86.98.222.224:8080',
+//   'http://31.57.228.216:8080',
+//   'http://89.36.162.76:8080',
+//   'http://2.50.20.72:8080',
+//   'http://2.49.54.61:8080',
+//   'http://89.36.162.75:8080',
+//   'http://2.49.68.140:8080',
+//   'http://139.185.42.86:8080',
+//   'http://2.50.143.164:8080',
+//   
+//   // پروکسی‌های HTTPS از UAE
+//   'https://129.151.130.247:8080',
+//   'https://93.127.180.78:8080',
+//   'https://31.58.51.90:8080',
+//   
+//   // پروکسی‌های SOCKS5 از UAE
+//   'socks5://165.154.241.205:1080',
+//   'socks5://85.8.184.212:1080',
+//   'socks5://185.198.59.237:1080',
+//   'socks5://185.45.194.124:1080',
+//   'socks5://85.209.9.247:1080',
+//   'socks5://38.180.27.230:1080',
+// ];
 
-let currentProxyIndex = 0;
+// let currentProxyIndex = 0;
 
-// تابع تغییر IP با پروکسی و یوزر ایجنت
+// تابع تغییر یوزر ایجنت (بدون پروکسی)
 async function changeIP() {
   try {
-    logger.info('🌐 در حال تغییر IP...');
+    logger.info('🌐 در حال تغییر یوزر ایجنت...');
     
-    if (!USE_PROXY) {
-      logger.info('⚠️ پروکسی غیرفعال است، بدون پروکسی ادامه می‌دهیم...');
-      return;
-    }
+    // تغییر User-Agent
+    const userAgents = [
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+    ];
     
-    if (proxyList.length > 0) {
-      // انتخاب پروکسی بعدی
-      const proxy = proxyList[currentProxyIndex];
-      currentProxyIndex = (currentProxyIndex + 1) % proxyList.length;
-      
-      logger.info(`🔄 استفاده از پروکسی: ${proxy}`);
-      
-      // تغییر پروکسی در مرورگر
-      await page.evaluateOnNewDocument(() => {
-        // تنظیم پروکسی
-        window.proxyConfig = {
-          server: proxy,
-          bypass: 'localhost,127.0.0.1'
-        };
-      });
-      
-      // تغییر User-Agent
-      const userAgents = [
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36',
-        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-      ];
-      
-      const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
-      await page.setUserAgent(randomUserAgent);
-      
-      // تغییر Viewport
-      const viewports = [
-        { width: 1366, height: 768 },
-        { width: 1920, height: 1080 },
-        { width: 1280, height: 720 },
-        { width: 1440, height: 900 },
-        { width: 1536, height: 864 },
-      ];
-      
-      const randomViewport = viewports[Math.floor(Math.random() * viewports.length)];
-      await page.setViewport(randomViewport);
-      
-      logger.info(`✅ IP تغییر کرد - User-Agent: ${randomUserAgent.substring(0, 50)}...`);
-    } else {
-      logger.warn('⚠️ هیچ پروکسی‌ای تعریف نشده');
-    }
+    const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
+    await page.setUserAgent(randomUserAgent);
+    
+    // تغییر Viewport
+    const viewports = [
+      { width: 1366, height: 768 },
+      { width: 1920, height: 1080 },
+      { width: 1280, height: 720 },
+      { width: 1440, height: 900 },
+      { width: 1536, height: 864 },
+    ];
+    
+    const randomViewport = viewports[Math.floor(Math.random() * viewports.length)];
+    await page.setViewport(randomViewport);
+    
+    logger.info(`✅ یوزر ایجنت تغییر کرد: ${randomUserAgent.substring(0, 50)}...`);
   } catch (e) {
-    logger.warn(`⚠️ خطا در تغییر IP: ${e.message}`);
+    logger.warn(`⚠️ خطا در تغییر یوزر ایجنت: ${e.message}`);
   }
 }
 
@@ -154,13 +130,13 @@ async function setupBrowser() {
     });
     await page.setViewport({ width: 1280, height: 720 });
     
-    // مرحله 1: تغییر IP قبل از شروع (اختیاری)
-    logger.info('🔄 در حال تغییر IP...');
+    // مرحله 1: تغییر یوزر ایجنت قبل از شروع
+    logger.info('🔄 در حال تغییر یوزر ایجنت...');
     try {
       await changeIP();
-      logger.info('✅ IP تغییر کرد');
+      logger.info('✅ یوزر ایجنت تغییر کرد');
     } catch (e) {
-      logger.warn('⚠️ خطا در تغییر IP، بدون پروکسی ادامه می‌دهیم...');
+      logger.warn('⚠️ خطا در تغییر یوزر ایجنت، ادامه می‌دهیم...');
     }
     
     // مرحله 2: رفتن به صفحه اولیمپ ترید
@@ -184,11 +160,11 @@ async function setupBrowser() {
       } catch (e) {
         logger.warn(`⚠️ تلاش ${attempts} ناموفق: ${e.message}`);
         if (attempts < maxAttempts) {
-          logger.info('🔄 تغییر IP و تلاش مجدد...');
+          logger.info('🔄 تغییر یوزر ایجنت و تلاش مجدد...');
           try {
             await changeIP();
           } catch (e) {
-            logger.warn('⚠️ خطا در تغییر IP، بدون پروکسی تلاش می‌کنیم...');
+            logger.warn('⚠️ خطا در تغییر یوزر ایجنت، تلاش می‌کنیم...');
           }
           await new Promise(resolve => setTimeout(resolve, 5000)); // صبر 5 ثانیه
         }
